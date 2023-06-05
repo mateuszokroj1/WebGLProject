@@ -1,36 +1,29 @@
-import * from "./STLFile.js";
+import * as STL from './STLFile.js'
 
 export class GLApplication {
-    canvas;
-    context;
+  canvas
+  context
 
-    constructor(window, canvas_selector) {
-        const element = window.document.querySelector(canvas_selector);
+  constructor (window, canvasSelector) {
+    const element = window.document.querySelector(canvasSelector)
 
-        if (element instanceof HTMLCanvasElement)
-            this.canvas = element;
-        else
-            throw "Unable to find canvas element for WebGL rendering.";
+    if (element instanceof HTMLCanvasElement) { this.canvas = element } else { throw new Error('Unable to find canvas element for WebGL rendering.') }
 
-        const context = this.canvas.getContext("webgl");
-        if (context instanceof WebGLRenderingContext)
-            this.context = context;
-        else
-            throw "Unable to initialize WebGL. Your browser or machine may not support it.";
-    }
+    const context = this.canvas.getContext('webgl')
+    if (context instanceof WebGLRenderingContext) { this.context = context } else { throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.') }
+  }
 
-    async init() {
-        this.context.clearColor(20, 20, 20, 255);
-        this.context.clear(this.context.COLOR_BUFFER_BIT);
+  async init () {
+    this.context.clearColor(20, 20, 20, 255)
+    this.context.clear(this.context.COLOR_BUFFER_BIT)
 
-        const stl_file = await fetch("../assets/DeLorean.STL");
-        const stl = new STLFile(stl_file);
-        
+    //const stlFile = await fetch('../assets/DeLorean.STL')
+    //const stl = new STL.STLFile(await stlFile.arrayBuffer()) TODO
 
-        this._render();
-    }
+    this._render()
+  }
 
-    _render() {
+  _render () {
 
-    }
+  }
 }
