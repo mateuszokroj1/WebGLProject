@@ -8,7 +8,7 @@
 
 html
 {
-    background-color: #1e1e1eff;
+    background-color: white;
 }
 
 canvas#screen { width: 99vw; height: 99vh; }

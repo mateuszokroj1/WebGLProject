@@ -1,3 +1,5 @@
+import * from "./STLFile.js";
+
 export class GLApplication {
     canvas;
     context;
@@ -18,11 +20,12 @@ export class GLApplication {
     }
 
     async init() {
-        this.context.clearColor(255, 255, 255, 0);
+        this.context.clearColor(20, 20, 20, 255);
         this.context.clear(this.context.COLOR_BUFFER_BIT);
 
         const stl_file = await fetch("../assets/DeLorean.STL");
-        const stl = await stl_file.text();
+        const stl = new STLFile(stl_file);
+        
 
         this._render();
     }
