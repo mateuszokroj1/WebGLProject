@@ -1,5 +1,5 @@
-import * as GL from "./scripts/GLApplication.js";
+import * as GL from './scripts/GLApplication.js'
 
-const app = new GL.GLApplication(window, "canvas#screen");
+const app = new GL.GLApplication(window, 'canvas#screen')
 
-app.init();
+app.init()
