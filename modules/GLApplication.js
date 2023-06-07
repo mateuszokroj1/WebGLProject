@@ -17,7 +17,7 @@ export class GLApplication {
     this.context.clearColor(20, 20, 20, 255)
     this.context.clear(this.context.COLOR_BUFFER_BIT)
 
-    const stlFile = new STL.STLFile('../assets/DeLorean.STL')
+    const stlFile = new STL.STLFile(new URL('../assets/DeLorean.STL', window.document.baseURI))
     await stlFile.load()
 
     this._render()
