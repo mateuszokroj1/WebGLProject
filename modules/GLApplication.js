@@ -1,8 +1,10 @@
 import * as STL from './STLFile.js'
+import { VisibleObject } from './VisibleObject.js'
 
 export class GLApplication {
   canvas
   context
+  visibleObjects
 
   constructor (window, canvasSelector) {
     const element = window.document.querySelector(canvasSelector)
@@ -11,10 +13,12 @@ export class GLApplication {
 
     const context = this.canvas.getContext('webgl')
     if (context instanceof WebGLRenderingContext) { this.context = context } else { throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.') }
+
+    this.visibleObjects = []
   }
 
   async init () {
-    this.context.clearColor(20, 20, 20, 255)
+    this.context.clearColor(0.0, 0.0, 0.0, 1.0)
     this.context.clearDepth(1.0)
     this.context.enable(this.context.DEPTH_TEST)
     this.context.depthFunc(this.context.LEQUAL)
@@ -23,7 +27,10 @@ export class GLApplication {
     const stlFile = new STL.STLFile(new URL('../assets/DeLorean.STL', window.document.baseURI))
     await stlFile.load()
 
-    let shaderFile = await fetch('../assets/shaders/standard_vertexShader.txt')
+    let shaderFile = await fetch('../assets/shaders/standard_vertexShader.glsl')
+
+    if (shaderFile.status !== 200) { throw new Error('Cannot load shader file.') }
+
     const vShaderStr = await shaderFile.text()
 
     const vShader = this.context.createShader(this.context.VERTEX_SHADER)
@@ -40,7 +47,9 @@ export class GLApplication {
     const shaderProgram = this.context.createProgram()
     this.context.attachShader(shaderProgram, vShader)
 
-    shaderFile = await fetch('../assets/shaders/solidColor_fragShader.txt')
+    shaderFile = await fetch('../assets/shaders/solidColor_fragShader.glsl')
+    if (shaderFile.status !== 200) { throw new Error('Cannot load shader file.') }
+
     const solidColorShaderStr = await shaderFile.text()
 
     const solidColorShader = this.context.createShader(this.context.FRAGMENT_SHADER)
@@ -69,18 +78,42 @@ export class GLApplication {
       },
       uniformLocations: {
         projectionMatrix: this.context.getUniformLocation(shaderProgram, 'projectionMatrix'),
-        modelViewMatrix: this.context.getUniformLocation(shaderProgram, 'modelViewMatrix')
+        modelViewMatrix: this.context.getUniformLocation(shaderProgram, 'modelViewMatrix'),
+        isProjected: this.context.getUniformLocation(shaderProgram, 'isProjected'),
+        solidColor: this.context.getUniformLocation(shaderProgram, 'solidColor')
       }
     }
 
     this.context.useProgram(programInfo.program)
 
-    
+    this.context.deleteShader(vShader)
+    this.context.deleteShader(solidColorShader)
+
+    const vertexBuffer = this.context.createBuffer()
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, vertexBuffer)
+
+    const positionsTriangle = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0]
+    this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(positionsTriangle), this.context.STATIC_DRAW)
+
+    this.context.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, this.context.FLOAT, false, 0, 0)
+    this.context.enableVertexAttribArray(programInfo.attribLocations.vertexPosition)
+
+    const modelViewMatrix = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    const projectionMatrix = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+
+    this.context.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix)
+    this.context.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix)
+    this.context.uniform1i(programInfo.uniformLocations.isProjected, true)
+    this.context.uniform4f(programInfo.uniformLocations.solidColor, 1.0, 0.0, 0.0, 1.0)
+
+    this.context.drawArrays(this.context.TRIANGLE_STRIP, 0, 4)
 
     this._render()
   }
 
   _render () {
-
+    this.visibleObjects.forEach(element => {
+      if (element instanceof VisibleObject) { element.render() }
+    })
   }
 }
