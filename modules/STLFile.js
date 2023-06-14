@@ -1,11 +1,15 @@
-export class STLFile {
+import { IModel } from './abstracts/IModel'
+
+export class STLFile extends IModel {
   file_url
   header
   vertices
   normals
   is_loaded = false
 
-  constructor (fileUrl) {
+  constructor(fileUrl) {
+    super()
+
     if (fileUrl instanceof URL) this.file_url = fileUrl
     else throw new Error('"fileUrl" is not URL.')
   }

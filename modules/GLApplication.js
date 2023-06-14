@@ -19,7 +19,7 @@ export class GLApplication {
 
     this.visibleObjects = []
     this.backgroundColor = new Color(0, 0, 0, 1)
-  }
+    }
 
   preRender () {
     this.context.clearColor(0.0, 0.0, 0.0, 1.0)
