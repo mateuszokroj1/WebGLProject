@@ -1,4 +1,6 @@
 import { IModel } from './abstracts/IModel'
+import { Transformation } from './Transformation'
+import * as GLM from 'gl-matrix'
 
 export class VisibleObject {
   name
@@ -14,12 +16,17 @@ export class VisibleObject {
     this.opacity = 1.0
     this.model = null
     this.useProjection = false
-    this.transformation = 
+    this.transformation = new Transformation()
+    this.importTransformation = new Transformation()
   }
 
-  render () {
+  render (context, shaderProgram) {
     if (!(this.model instanceof IModel)) { return }
 
     const vertices = this.model.getVertices()
+
+    let trafo = this.importTransformation.calculateMatrix()
+    GLM.mat4.mul(trafo, trafo, this.importTransformation.calculateMatrix())
+    
   }
 }
