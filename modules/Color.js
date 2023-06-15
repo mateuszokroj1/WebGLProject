@@ -1,5 +1,5 @@
 function isInRange (value, low, high) {
-  return value instanceof Number && value >= low && value <= high
+  return ((value > low && value < high) || value === low || value === high)
 }
 
 export class Color {

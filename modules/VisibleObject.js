@@ -1,6 +1,6 @@
-import { IModel } from './abstracts/IModel'
-import { Transformation } from './Transformation'
-import * as GLM from 'gl-matrix'
+import { IModel } from './abstracts/IModel.js'
+import { Transformation } from './Transformation.js'
+import * as GLM from '../node_modules/gl-matrix/gl-matrix.js'
 
 export class VisibleObject {
   name
@@ -20,7 +20,7 @@ export class VisibleObject {
     this.importTransformation = new Transformation()
   }
 
-  render (context, shaderProgram) {
+  render (context, shaderProgram, camera) {
     if (!(this.model instanceof IModel)) { return }
 
     const vertices = this.model.getVertices()

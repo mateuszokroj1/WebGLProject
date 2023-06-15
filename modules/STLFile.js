@@ -1,4 +1,4 @@
-import { IModel } from './abstracts/IModel'
+import { IModel } from './abstracts/IModel.js'
 
 export class STLFile extends IModel {
   file_url
