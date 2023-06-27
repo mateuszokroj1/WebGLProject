@@ -2,12 +2,11 @@ import { IModel } from './abstracts/IModel.js'
 
 export class STLFile extends IModel {
   file_url
-  header
-  vertices
-  normals
+  header = ''
+  vertices = []
   is_loaded = false
 
-  constructor(fileUrl) {
+  constructor (fileUrl) {
     super()
 
     if (fileUrl instanceof URL) this.file_url = fileUrl
@@ -21,19 +20,37 @@ export class STLFile extends IModel {
     this.header = new TextDecoder().decode(buffer.slice(0, 80))
 
     const count = new Uint32Array(buffer.slice(80, 84))[0]
-    this.vertices = new Float32Array(3 * 3 * count)
-    this.normals = new Float32Array(3 * count)
 
     for (let i = 0; i < count; i++) {
-      const floats = new Float32Array(buffer.slice(84 + i * 64, (84 + i * 64) + 48))
+      const startPosition = 84 + i * 64
 
-      this.normals[i * 3] = floats[0]
-      this.normals[i * 3 + 1] = floats[1]
-      this.normals[i * 3 + 2] = floats[2]
+      const floats = new Float32Array(buffer.slice(startPosition, startPosition + 48))
 
-      for (let j = 0; j < 9; j++) { this.vertices[i * 9 + j] = floats[3 + j] }
+      this.vertices.push(floats[0])
+      this.vertices.push(floats[1])
+      this.vertices.push(floats[2])
+      this.vertices.push(1.0)
+
+      this.vertices.push(floats[3])
+      this.vertices.push(floats[4])
+      this.vertices.push(floats[5])
+      this.vertices.push(1.0)
+
+      this.vertices.push(floats[6])
+      this.vertices.push(floats[7])
+      this.vertices.push(floats[8])
+      this.vertices.push(1.0)
+
+      this.vertices.push(floats[9])
+      this.vertices.push(floats[10])
+      this.vertices.push(floats[11])
+      this.vertices.push(0)
     }
 
     this.is_loaded = true
+  }
+
+  getVertices () {
+    return this.vertices
   }
 }
