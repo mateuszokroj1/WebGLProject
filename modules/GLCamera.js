@@ -20,7 +20,8 @@ export class GLCamera {
   }
 
   getViewMatrix () {
-    const trafo = GLM.mat4.identity()
+    const trafo = GLM.mat4.create()
+    GLM.mat4.identity(trafo)
 
     GLM.vec3.normalize(this.direction, this.direction)
 
@@ -34,7 +35,7 @@ export class GLCamera {
   }
 
   getPerspectiveMatrix (aspect) {
-    const trafo = GLM.mat4.identity()
+    const trafo = GLM.mat4.create()
     GLM.mat4.perspective(trafo, this.angleOfView, aspect, this.near, this.far)
 
     return trafo

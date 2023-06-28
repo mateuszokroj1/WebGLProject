@@ -84,15 +84,20 @@ export class GLShaderProgram {
     this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 4, this.context.FLOAT, false, 8, 4)
     this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
 
-    this.context.uniform4fv(this.uniformLocations.ambientLightColor, ambientLightColor)
-    this.context.uniform4fv(this.uniformLocations.directionalLightColor, directionalLightColor)
-    this.context.uniform4fv(this.uniformLocations.directionalLightVector, directionalLightVector)
+    this.context.uniform3fv(this.uniformLocations.ambientLightColor, ambientLightColor)
+    this.context.uniform3fv(this.uniformLocations.directionalLightColor, directionalLightColor)
+    this.context.uniform3fv(this.uniformLocations.directionalLightVector, directionalLightVector)
     this.context.uniform1i(this.uniformLocations.useLighting, useLighting)
     this.context.uniform1i(this.uniformLocations.isProjected, isProjected)
-    this.context.uniformMatrix4fv(this.uniformLocations.modelMatrix, modelMatrix)
-    this.context.uniformMatrix4fv(this.uniformLocations.viewMatrix, viewMatrix)
-    this.context.uniformMatrix4fv(this.uniformLocations.projectionMatrix, projectionMatrix)
-    this.context.uniform4fv(this.uniformLocations.basicColor, basicColor)
-    this.context.uniformMatrix4fv(this.uniformLocations.normalMatrix, GLM.mat4.invert(viewMatrix * modelMatrix))
+    this.context.uniformMatrix4fv(this.uniformLocations.modelMatrix, false, modelMatrix)
+    this.context.uniformMatrix4fv(this.uniformLocations.viewMatrix, false, viewMatrix)
+    this.context.uniformMatrix4fv(this.uniformLocations.projectionMatrix, false, projectionMatrix)
+    this.context.uniform3f(this.uniformLocations.basicColor, basicColor[0], basicColor[1], basicColor[2])
+
+    let normalMatrix = GLM.mat4.create()
+    GLM.mat4.multiply(normalMatrix, viewMatrix, modelMatrix)
+    GLM.mat4.invert(normalMatrix, normalMatrix)
+
+    this.context.uniformMatrix4fv(this.uniformLocations.normalMatrix, false, normalMatrix)
   }
 }

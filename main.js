@@ -12,6 +12,8 @@ const obj = new VisibleObject('car')
 const stl = new STLFile(new URL('/assets/DeLorean.STL', window.document.baseURI))
 await stl.load()
 obj.model = stl
+obj.opacity = 1.0
+obj.color = GLM.vec3.fromValues(1, 0, 0)
 
 app.visibleObjects.push(obj)
 
@@ -20,5 +22,6 @@ await shaderProgram.load()
 
 app.setShaderProgram(shaderProgram)
 app.backgroundColor = GLM.vec3.fromValues(0.1, 0.1, 0.1)
-app.camera = new GLCamera(90, 0.1, 1000.0, GLM.vec3.fromValues(0, -5, 0), GLM.vec3.fromValues(0, 0, 0))
+app.camera = new GLCamera(90, 0.1, 1000.0, GLM.vec3.fromValues(0, -5, 0), GLM.vec3.fromValues(0, 1, 0))
 app.preRender()
+app.render()

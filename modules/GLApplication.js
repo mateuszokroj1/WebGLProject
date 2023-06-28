@@ -37,9 +37,9 @@ export class GLApplication {
     } else { this.shaderProgram = null }
   }
 
-  _render () {
+  render () {
     this.visibleObjects.forEach(element => {
-      if (element instanceof VisibleObject) { element.render() }
+      if (element instanceof VisibleObject) { element.render(this.context, this.shaderProgram, this.camera, this.canvas.clientWidth / this.canvas.clientHeight) }
     })
   }
 }

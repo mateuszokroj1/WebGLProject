@@ -24,21 +24,22 @@ export class VisibleObject {
     this.importTransformation = new Transformation()
   }
 
-  render (context, shaderProgram, camera) {
-    if (!(this.model instanceof IModel) || !(shaderProgram instanceof GLShaderProgram) || !(camera instanceof GLCamera)) { return }
+  render (context, shaderProgram, camera, aspect) {
+    if (!(this.model instanceof IModel) || (typeof this.opacity !== 'number') || !(this.color instanceof Float32Array)) throw new Error('Bad configuration.')
+    if (!(context instanceof WebGLRenderingContext) || !(shaderProgram instanceof GLShaderProgram) || !(camera instanceof GLCamera) || (typeof aspect !== 'number')) throw new Error('Bad argument.')
 
     const vertices = this.model.vertices
 
-    const vertexBuffer = this.context.createBuffer()
-    this.context.bindBuffer(this.context.ARRAY_BUFFER, vertexBuffer)
+    const vertexBuffer = context.createBuffer()
+    context.bindBuffer(context.ARRAY_BUFFER, vertexBuffer)
 
-    this.context.bufferData(this.context.ARRAY_BUFFER, vertices, this.context.STATIC_DRAW)
+    context.bufferData(context.ARRAY_BUFFER, vertices, context.STATIC_DRAW)
 
     let modelMatrix = this.importTransformation.calculateMatrix()
-    GLM.mat4.mul(modelMatrix, modelMatrix, this.transformation.calculateMatrix())
+    GLM.mat4.multiply(modelMatrix, modelMatrix, this.transformation.calculateMatrix())
 
-    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), false, this.useProjection, camera.getPerspectiveMatrix(), GLM.vec4.fromValues(1, 1, 1, 1), GLM.vec4.fromValues(1, 1, 1, 1), GLM.vec4.fromValues(0, 1, 0, 0))
+    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), false, this.useProjection, camera.getPerspectiveMatrix(aspect), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(0, 1, 0))
 
-    this.context.drawArrays(this.context.TRIANGLES, 0, Math.floor(vertices.length / 4))
+    context.drawArrays(context.TRIANGLES, 0, Math.floor(vertices.length / 4))
   }
 }
