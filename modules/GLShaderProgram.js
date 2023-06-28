@@ -1,4 +1,4 @@
-import * as GLM from 'gl-matrix'
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 
 export class GLShaderProgram {
   context

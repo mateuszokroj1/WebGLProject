@@ -1,4 +1,4 @@
-import * as GLM from '../node_modules/gl-matrix/gl-matrix.js'
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 
 export class Transformation {
   position = GLM.vec3.fromValues(0, 0, 0)

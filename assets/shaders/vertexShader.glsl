@@ -25,9 +25,12 @@ void main()
         return;
     }
 
-    highp vec4 transformedNormal = normalMatrix * vec4(normalize(normal), 1.0);
+    highp vec4 transformedNormal = normalMatrix * normalize(normal);
     highp vec3 dirLightVector = normalize(directionalLightVector);
 
-    highp float directionalLight = max(dot(transformedNormal.xyz, dirLightVector), 0);
+    highp float directionalLight = dot(transformedNormal.xyz, dirLightVector);
+    if(directionalLight < 0.0)
+        directionalLight = 0.0;
+
     vectorLighting = ambientLight + (directionalLightColor * directionalLight);
 }

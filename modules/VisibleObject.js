@@ -2,7 +2,7 @@ import { IModel } from './abstracts/IModel.js'
 import { GLCamera } from './GLCamera.js'
 import { GLShaderProgram } from './GLShaderProgram.js'
 import { Transformation } from './Transformation.js'
-import * as GLM from '../node_modules/gl-matrix/gl-matrix.js'
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 
 export class VisibleObject {
   name
@@ -14,7 +14,7 @@ export class VisibleObject {
   useProjection
 
   constructor (name) {
-    if (name instanceof String) { this.name = name } else { throw new Error('Name is not a String.') }
+    if (typeof name === 'string') { this.name = name } else { throw new Error('Name is not a String.') }
 
     this.opacity = 1.0
     this.color = GLM.vec3.fromValues(0, 0, 0)

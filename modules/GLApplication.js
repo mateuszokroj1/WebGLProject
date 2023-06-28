@@ -1,7 +1,6 @@
-import * as STL from './STLFile.js'
 import { VisibleObject } from './VisibleObject.js'
-import { Color } from './Color.js'
 import { GLShaderProgram } from './GLShaderProgram.js'
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 
 export class GLApplication {
   canvas
@@ -20,11 +19,11 @@ export class GLApplication {
     if (context instanceof WebGLRenderingContext) { this.context = context } else { throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.') }
 
     this.visibleObjects = []
-    this.backgroundColor = new Color(0, 0, 0, 1)
+    this.backgroundColor = GLM.vec3.fromValues(0, 0, 0)
   }
 
   preRender () {
-    this.context.clearColor(0.0, 0.0, 0.0, 1.0)
+    this.context.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], 1)
     this.context.clearDepth(1.0)
     this.context.enable(this.context.DEPTH_TEST)
     this.context.depthFunc(this.context.LEQUAL)

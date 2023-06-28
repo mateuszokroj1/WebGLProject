@@ -1,4 +1,4 @@
-import * as GLM from 'gl-matrix'
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 
 export class GLCamera {
   angleOfView
@@ -8,7 +8,7 @@ export class GLCamera {
   direction
 
   constructor (angleOfView, near, far, positionInWorld, direction) {
-    if (angleOfView > 0.0 && near < far && near && positionInWorld instanceof GLM.vec3 && direction instanceof GLM.vec3) {
+    if (angleOfView > 0.0 && near < far && near && positionInWorld instanceof Float32Array && positionInWorld.length === 3 && direction instanceof Float32Array && direction.length === 3) {
       this.angleOfView = angleOfView
       this.near = near
       this.far = far
@@ -21,6 +21,8 @@ export class GLCamera {
 
   getViewMatrix () {
     const trafo = GLM.mat4.identity()
+
+    GLM.vec3.normalize(this.direction, this.direction)
 
     GLM.mat4.rotateX(trafo, trafo, this.direction[0])
     GLM.mat4.rotateY(trafo, trafo, this.direction[1])
