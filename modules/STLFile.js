@@ -4,6 +4,7 @@ export class STLFile extends IModel {
   file_url
   header = ''
   vertices = []
+  normals = []
   is_loaded = false
 
   constructor (fileUrl) {
@@ -41,16 +42,16 @@ export class STLFile extends IModel {
       this.vertices.push(floats[8])
       this.vertices.push(1.0)
 
-      this.vertices.push(floats[9])
-      this.vertices.push(floats[10])
-      this.vertices.push(floats[11])
-      this.vertices.push(0)
+      this.normals.push(floats[9])
+      this.normals.push(floats[10])
+      this.normals.push(floats[11])
+      this.normals.push(0)
     }
 
     this.is_loaded = true
   }
 
   getVertices () {
-    return this.vertices
+    return { vertices: this.vertices, normals: this.normals }
   }
 }

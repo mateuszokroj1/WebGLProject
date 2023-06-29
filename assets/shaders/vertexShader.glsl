@@ -1,5 +1,5 @@
 attribute vec4 position;
-attribute vec4 normal;
+//attribute vec4 normal;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -25,7 +25,7 @@ void main()
         return;
     }
 
-    highp vec4 transformedNormal = normalMatrix * normalize(normal);
+    highp vec4 transformedNormal = normalMatrix * vec4(0.0, -1.0, 0.0, 0.0); //normalize(normal);
     highp vec3 dirLightVector = normalize(directionalLightVector);
 
     highp float directionalLight = dot(transformedNormal.xyz, dirLightVector);

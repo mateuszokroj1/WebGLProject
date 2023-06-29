@@ -61,7 +61,7 @@ export class GLShaderProgram {
 
     this.attribLocations = {
       vertexPosition: this.context.getAttribLocation(this.glShaderProgram, 'position'),
-      vertexNormal: this.context.getAttribLocation(this.glShaderProgram, 'normal')
+      //vertexNormal: this.context.getAttribLocation(this.glShaderProgram, 'normal')
     }
     this.uniformLocations = {
       ambientLightColor: this.context.getUniformLocation(this.glShaderProgram, 'ambientLight'),
@@ -78,11 +78,11 @@ export class GLShaderProgram {
   }
 
   configureRendering (basicColor, modelMatrix, viewMatrix, useLighting, isProjected, projectionMatrix, ambientLightColor, directionalLightColor, directionalLightVector) {
-    this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 4, this.context.FLOAT, false, 8, 0)
+    this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 4, this.context.FLOAT, false, 0, 0)
     this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
 
-    this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 4, this.context.FLOAT, false, 8, 4)
-    this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
+    //this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 4, this.context.FLOAT, false, 8, 4)
+    //this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
 
     this.context.uniform3fv(this.uniformLocations.ambientLightColor, ambientLightColor)
     this.context.uniform3fv(this.uniformLocations.directionalLightColor, directionalLightColor)
@@ -94,9 +94,10 @@ export class GLShaderProgram {
     this.context.uniformMatrix4fv(this.uniformLocations.projectionMatrix, false, projectionMatrix)
     this.context.uniform3f(this.uniformLocations.basicColor, basicColor[0], basicColor[1], basicColor[2])
 
-    let normalMatrix = GLM.mat4.create()
+    const normalMatrix = GLM.mat4.create()
     GLM.mat4.multiply(normalMatrix, viewMatrix, modelMatrix)
     GLM.mat4.invert(normalMatrix, normalMatrix)
+    GLM.mat4.transpose(normalMatrix, normalMatrix)
 
     this.context.uniformMatrix4fv(this.uniformLocations.normalMatrix, false, normalMatrix)
   }
