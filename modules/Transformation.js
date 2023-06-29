@@ -16,10 +16,10 @@ export class Transformation {
     GLM.mat4.rotateY(trafo, trafo, this.rotation_angles[1])
     GLM.mat4.rotateZ(trafo, trafo, this.rotation_angles[2])
 
-    const inverted_anchorPoint = GLM.vec3.create()
-    GLM.vec3.inverse(inverted_anchorPoint, this.rotation_anchorPoint)
+    const negated_anchor_point = GLM.vec3.create()
+    GLM.vec3.negate(negated_anchor_point, this.rotation_anchorPoint)
 
-    GLM.mat4.translate(trafo, trafo, inverted_anchorPoint)
+    GLM.mat4.translate(trafo, trafo, negated_anchor_point)
 
     GLM.mat4.translate(trafo, trafo, this.position)
     GLM.mat4.scale(trafo, trafo, this.scale)
