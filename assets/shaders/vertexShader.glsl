@@ -1,5 +1,5 @@
-attribute vec4 position;
-//attribute vec4 normal;
+attribute vec3 position;
+attribute vec3 normal;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -16,16 +16,16 @@ varying highp vec3 vectorLighting;
 
 void main()
 {
-    highp vec4 transformed = viewMatrix * modelMatrix * position;
+    highp vec4 transformed = viewMatrix * modelMatrix * vec4(position, 1.0);
     gl_Position = isProjected ? projectionMatrix * transformed : transformed;
 
     if(!useLighting)
     {
-        vectorLighting = vec3(0,0,0);
+        vectorLighting = vec3(0.0,1.0,0.0);
         return;
     }
 
-    highp vec4 transformedNormal = normalMatrix * vec4(0.0, -1.0, 0.0, 0.0); //normalize(normal);
+    highp vec4 transformedNormal = normalMatrix * vec4(normalize(normal), 0.0);
     highp vec3 dirLightVector = normalize(directionalLightVector);
 
     highp float directionalLight = dot(transformedNormal.xyz, dirLightVector);

@@ -30,16 +30,12 @@ export class VisibleObject {
 
     const modelData = this.model.getVertices()
 
-    const vertexBuffer = context.createBuffer()
-    context.bindBuffer(context.ARRAY_BUFFER, vertexBuffer)
-
-    context.bufferData(context.ARRAY_BUFFER, new Float32Array(modelData), context.STATIC_DRAW)
-
     const modelMatrix = this.importTransformation.calculateMatrix()
     GLM.mat4.multiply(modelMatrix, modelMatrix, this.transformation.calculateMatrix())
 
-    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), false, this.useProjection, camera.getPerspectiveMatrix(aspect), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(0, 1, 0))
+    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), true, this.useProjection, camera.getPerspectiveMatrix(aspect), GLM.vec3.fromValues(0, 0, 0), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(-0.71, 0.71, 0))
+    shaderProgram.loadBuffers(modelData.vertices, modelData.normals)
 
-    context.drawArrays(context.TRIANGLE_STRIP, 0, modelData.length / 4)
+    context.drawArrays(context.TRIANGLES, 0, modelData.vertices.length / 3)
   }
 }

@@ -5,6 +5,8 @@ export class GLShaderProgram {
   uniformLocations
   glShaderProgram
   positionAttribute
+  vertexBuffer
+  normalBuffer
 
   constructor (context) {
     if (context instanceof WebGLRenderingContext) {
@@ -61,7 +63,7 @@ export class GLShaderProgram {
 
     this.attribLocations = {
       vertexPosition: this.context.getAttribLocation(this.glShaderProgram, 'position'),
-      //vertexNormal: this.context.getAttribLocation(this.glShaderProgram, 'normal')
+      vertexNormal: this.context.getAttribLocation(this.glShaderProgram, 'normal')
     }
     this.uniformLocations = {
       ambientLightColor: this.context.getUniformLocation(this.glShaderProgram, 'ambientLight'),
@@ -75,15 +77,12 @@ export class GLShaderProgram {
       viewMatrix: this.context.getUniformLocation(this.glShaderProgram, 'viewMatrix'),
       basicColor: this.context.getUniformLocation(this.glShaderProgram, 'basicColor')
     }
+
+    this.vertexBuffer = this.context.createBuffer()
+    this.normalBuffer = this.context.createBuffer()
   }
 
   configureRendering (basicColor, modelMatrix, viewMatrix, useLighting, isProjected, projectionMatrix, ambientLightColor, directionalLightColor, directionalLightVector) {
-    this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 4, this.context.FLOAT, false, 0, 0)
-    this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
-
-    //this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 4, this.context.FLOAT, false, 8, 4)
-    //this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
-
     this.context.uniform3fv(this.uniformLocations.ambientLightColor, ambientLightColor)
     this.context.uniform3fv(this.uniformLocations.directionalLightColor, directionalLightColor)
     this.context.uniform3fv(this.uniformLocations.directionalLightVector, directionalLightVector)
@@ -100,5 +99,21 @@ export class GLShaderProgram {
     GLM.mat4.transpose(normalMatrix, normalMatrix)
 
     this.context.uniformMatrix4fv(this.uniformLocations.normalMatrix, false, normalMatrix)
+  }
+
+  loadBuffers (positions, normals) {
+    if (!(positions instanceof Array) || !(normals instanceof Array)) throw new Error('Bad argument.')
+
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, this.vertexBuffer)
+    this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(positions), this.context.STATIC_DRAW)
+
+    this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 3, this.context.FLOAT, false, 0, 0)
+    this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
+
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, this.normalBuffer)
+    this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(normals), this.context.STATIC_DRAW)
+
+    this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 3, this.context.FLOAT, false, 0, 0)
+    this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
   }
 }

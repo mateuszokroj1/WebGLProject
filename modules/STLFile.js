@@ -30,22 +30,20 @@ export class STLFile extends IModel {
       this.vertices.push(floats[0])
       this.vertices.push(floats[1])
       this.vertices.push(floats[2])
-      this.vertices.push(1.0)
 
       this.vertices.push(floats[3])
       this.vertices.push(floats[4])
       this.vertices.push(floats[5])
-      this.vertices.push(1.0)
 
       this.vertices.push(floats[6])
       this.vertices.push(floats[7])
       this.vertices.push(floats[8])
-      this.vertices.push(1.0)
 
-      this.normals.push(floats[9])
-      this.normals.push(floats[10])
-      this.normals.push(floats[11])
-      this.normals.push(0)
+      for (let j = 1; j <= 3; j++) {
+        this.normals.push(floats[9])
+        this.normals.push(floats[10])
+        this.normals.push(floats[11])
+      }
     }
 
     this.is_loaded = true
