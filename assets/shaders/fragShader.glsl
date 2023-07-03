@@ -1,4 +1,4 @@
-uniform highp vec3 basicColor;
+uniform lowp vec3 basicColor;
 uniform bool useLighting;
 
 varying highp vec3 vectorLighting;

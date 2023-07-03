@@ -4,7 +4,7 @@ import { STLFile } from './modules/STLFile.js'
 import { GLCamera } from './modules/GLCamera.js'
 import { VisibleObject } from './modules/VisibleObject.js'
 import { GLShaderProgram } from './modules/GLShaderProgram.js'
-import { TestTriangle } from './modules/TestTriangle.js'
+import { TestCube } from './modules/TestCube.js'
 
 const app = new GLApplication(window, 'canvas#screen')
 
@@ -12,9 +12,10 @@ const obj = new VisibleObject('car')
 
 //const stl = new STLFile(new URL('/assets/DeLorean.STL', window.document.baseURI))
 //await stl.load()
-const model = new TestTriangle()
+const model = new TestCube()
 obj.model = model
-obj.importTransformation.scale = GLM.vec3.fromValues(0.5, 0.5, 0.5)
+obj.importTransformation.scale = GLM.vec3.fromValues(0.9, 0.9, 0.9)
+obj.transformation.rotation_angles = GLM.vec3.fromValues(Math.PI/4, Math.PI/4, Math.PI/4)
 obj.useProjection = true
 obj.color = GLM.vec3.fromValues(1, 0, 0)
 

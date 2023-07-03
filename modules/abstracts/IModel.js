@@ -6,6 +6,9 @@ export class IModel {
   }
 
   getVertices () {
-    return []
+    return {
+      vertices: new Float32Array(0),
+      normals: new Float32Array(0)
+    }
   }
 }
