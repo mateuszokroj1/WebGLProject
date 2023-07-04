@@ -33,7 +33,7 @@ export class VisibleObject {
     const modelMatrix = this.importTransformation.calculateMatrix()
     GLM.mat4.multiply(modelMatrix, modelMatrix, this.transformation.calculateMatrix())
 
-    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), true, this.useProjection, camera.getPerspectiveMatrix(aspect), GLM.vec3.fromValues(0, 0, 0), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(-0.71, 0.71, 0))
+    shaderProgram.configureRendering(this.color, modelMatrix, camera.getViewMatrix(), true, this.useProjection, camera.getPerspectiveMatrix(aspect), GLM.vec3.fromValues(0.2, 0.2, 0.2), GLM.vec3.fromValues(1, 1, 1), GLM.vec3.fromValues(-0.71, 0.71, 0))
     shaderProgram.loadBuffers(modelData.vertices, modelData.normals)
 
     context.drawArrays(context.TRIANGLES, 0, modelData.vertices.length / 3)
