@@ -19,7 +19,7 @@ class Game {
     // await stl.load()
     const model = new TestCube()
     this.obj.model = model
-    this.obj.importTransformation.scale = GLM.vec3.fromValues(0.9, 0.9, 0.9)
+    this.obj.importTransformation.scale = GLM.vec3.fromValues(0.98, 0.98, 0.98)
     this.obj.useProjection = true
     this.obj.color = GLM.vec3.fromValues(1, 0, 0)
     this.rotation = GLM.vec3.fromValues(Math.PI / 4, Math.PI / 4, Math.PI / 4)
