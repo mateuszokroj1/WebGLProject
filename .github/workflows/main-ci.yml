@@ -22,7 +22,7 @@ jobs:
       run: npm install
 
     - name: Build
-      run: run build --if-present
+      run: npm build --if-present
 
     - name: Test
       run: npm test
