@@ -29,7 +29,20 @@ export class STLFile extends IModel {
     if (is_ascii) {
       let content = (await file.text()).toLowerCase().trim()
 
-      let r1 = /^solid ()$/m
+      let r1 = /^solid\s+\w+(.|\s)+endsolid\s+\w+\s*$/
+      if(!r1.test(content))
+        return
+
+      let r2 = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/
+      let arr1 = r2.exec(content)
+      
+      let r3 = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?\s+)\s+(?<y>\-?\d+((\.|\,)\d+)?\s+)\s+(?<z>\-?\d+((\.|\,)\d+)?\s+)/
+      let r4 = /(vertex\s+(?<v1_x>\-?\d+((\.|\,)\d+)?\s+)(?<v1_y>\-?\d+((\.|\,)\d+)?\s+)(?<v1_z>\-?\d+((\.|\,)\d+)?\s+))/
+      arr1.forEach(m => {
+        let normal_x = parseFloat(r3.exec(m).groups["x"])
+        let normal_y = parseFloat(r3.exec(m).groups["y"])
+        let normal_z = parseFloat(r3.exec(m).groups["z"])
+      })
     }
     else {
 
