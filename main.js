@@ -17,7 +17,6 @@ class Game {
 
     // const stl = new STLFile(new URL('/assets/DeLorean.STL', window.document.baseURI))
     // await stl.load()
-    const model = new TestCube()
     this.obj.model = model
     this.obj.importTransformation.scale = GLM.vec3.fromValues(0.98, 0.98, 0.98)
     this.obj.useProjection = true
