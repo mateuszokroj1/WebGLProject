@@ -3,7 +3,7 @@ import { GLApplication } from './modules/GLApplication.js'
 import { GLCamera } from './modules/GLCamera.js'
 import { VisibleObject } from './modules/VisibleObject.js'
 import { GLShaderProgram } from './modules/GLShaderProgram.js'
-import { TestCube } from './modules/TestCube.js'
+import { STLFile } from './modules/STLFile.js'
 
 class Game {
   app
@@ -15,13 +15,11 @@ class Game {
     this.app = new GLApplication(window, 'canvas#screen')
     this.obj = new VisibleObject('car')
 
-    // const stl = new STLFile(new URL('/assets/DeLorean.STL', window.document.baseURI))
-    // await stl.load()
-    this.obj.model = model
-    this.obj.importTransformation.scale = GLM.vec3.fromValues(0.98, 0.98, 0.98)
-    this.obj.useProjection = true
+    const stl = new STLFile(new URL('/assets/cube.STL', window.document.baseURI))
+    stl.load()
+    this.obj.model = stl
+    this.obj.useProjection = false
     this.obj.color = GLM.vec3.fromValues(1, 0, 0)
-    this.rotation = GLM.vec3.fromValues(Math.PI / 4, Math.PI / 4, Math.PI / 4)
     this.obj.transformation.rotation_angles = this.rotation
 
     this.app.visibleObjects.push(this.obj)
@@ -32,7 +30,7 @@ class Game {
     await shaderProgram.load()
 
     this.app.backgroundColor = GLM.vec3.fromValues(0.1, 0.1, 0.1)
-    this.app.camera = new GLCamera(Math.PI / 4, 0.1, 100.0, GLM.vec3.fromValues(0, 0, -6), GLM.vec3.fromValues(0, 0, 0))
+    this.app.camera = new GLCamera(Math.PI / 2, 0.01, 1000.0, GLM.vec3.fromValues(0, 0, -200000), GLM.vec3.fromValues(0, 0, 0))
     this.app.preRender()
 
     this.app.setShaderProgram(shaderProgram)
