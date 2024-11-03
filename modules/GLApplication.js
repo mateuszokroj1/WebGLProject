@@ -28,6 +28,7 @@ export class GLApplication {
     this.context.enable(this.context.DEPTH_TEST)
     this.context.depthFunc(this.context.LEQUAL)
     this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT)
+    this.context.viewport(0, 0, this.context.canvas.clientWidth, this.context.canvas.clientHeight)
   }
 
   setShaderProgram (shaderProgram) {
