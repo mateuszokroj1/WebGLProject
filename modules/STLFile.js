@@ -27,29 +27,38 @@ export class STLFile extends IModel {
       }
 
     if (is_ascii) {
-      const content = (await file.text()).toLowerCase().trim()
+      let text = ""
+      {
+        const decoder = new TextDecoder();
+        text = decoder.decode(buffer);
+      }
 
-      const full_text_checker = /^solid\s+\w+(.|\s)+endsolid\s+\w+\s*$/
-      if(!full_text_checker.test(content))
+      const full_text_checker = /^solid\s+\w+(.|\s)+endsolid\s+\w+\s*$/g
+      if(!full_text_checker.test(text))
         return
 
-      const triangle_reg = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/
-      const triangle_matches = triangle_reg.exec(content)
+      const triangle_reg = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/g
+      const triangle_matches = text.matchAll(triangle_reg)
       
-      const normal_match = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?\s+)\s+(?<y>\-?\d+((\.|\,)\d+)?\s+)\s+(?<z>\-?\d+((\.|\,)\d+)?\s+)/
-      const vertices_matches = /(vertex\s+(?<ver_x>\-?\d+((\.|\,)\d+)?\s+)(?<ver_y>\-?\d+((\.|\,)\d+)?\s+)(?<ver_z>\-?\d+((\.|\,)\d+)?\s+))/
+      const normal_match = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
+      const vertices_matches = /vertex\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
+      
       triangle_matches.forEach(vertex_string => {
-        const match1 = normal_match.exec(match1)[0]
+        const match1 = normal_match.exec(vertex_string[0])
         const normal_x = parseFloat(match1.groups['x'])
         const normal_y = parseFloat(match1.groups['y'])
         const normal_z = parseFloat(match1.groups['z'])
+
+        this.normals.push(normal_x, normal_y, normal_z)
+        this.normals.push(normal_x, normal_y, normal_z)
         this.normals.push(normal_x, normal_y, normal_z)
 
-        const vertices = vertices_matches.exec(vertex_string)
-        vertices.forEach(match2 => {
-          const v_x = parseFloat(match2.groups['ver_x'])
-          const v_y = parseFloat(match2.groups['ver_y'])
-          const v_z = parseFloat(match2.groups['ver_z'])
+        const vertices = vertex_string[0].matchAll(vertices_matches)
+        vertices.forEach(match2_string => {
+          const v_match = vertices_matches.exec(match2_string[0])
+          const v_x = parseFloat(v_match.groups['x'])
+          const v_y = parseFloat(v_match.groups['y'])
+          const v_z = parseFloat(v_match.groups['z'])
 
           this.vertices.push(v_x,v_y,v_z)
         })
