@@ -33,9 +33,12 @@ export class STLFile extends IModel {
         text = decoder.decode(buffer);
       }
 
-      const full_text_checker = /^solid\s+\w+(.|\s)+endsolid\s+\w+\s*$/g
-      if(!full_text_checker.test(text))
+      const full_text_checker = /^solid\s+(?<header>\w+)[\s\S]{100,}$/g
+      const match1 = full_text_checker.exec(text)
+      if(match1 == null)
         return
+
+      this.header = match1.groups['header']
 
       const triangle_reg = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/g
       const triangle_matches = text.matchAll(triangle_reg)
@@ -44,6 +47,7 @@ export class STLFile extends IModel {
       const vertices_matches = /vertex\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
       
       triangle_matches.forEach(vertex_string => {
+        normal_match.lastIndex = 0;
         const match1 = normal_match.exec(vertex_string[0])
         const normal_x = parseFloat(match1.groups['x'])
         const normal_y = parseFloat(match1.groups['y'])
@@ -55,6 +59,7 @@ export class STLFile extends IModel {
 
         const vertices = vertex_string[0].matchAll(vertices_matches)
         vertices.forEach(match2_string => {
+          vertices_matches.lastIndex = 0;
           const v_match = vertices_matches.exec(match2_string[0])
           const v_x = parseFloat(v_match.groups['x'])
           const v_y = parseFloat(v_match.groups['y'])
@@ -99,5 +104,13 @@ export class STLFile extends IModel {
 
   getVertices() {
     return { vertices: this.vertices, normals: this.normals }
+  }
+
+  calcBoundingBox() {
+    return {
+      min: GLM.vec3.fromValues(0,0,0),
+      max: GLM.vec3.fromValues(0,0,0),
+      center: GLM.vec3.fromValues(0,0,0)
+    }
   }
 }

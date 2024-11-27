@@ -24,6 +24,10 @@ export class VisibleObject {
     this.importTransformation = new Transformation()
   }
 
+  getBoundingBox() {
+    return this.model.calcBoundingBox()
+  }
+
   render (context, shaderProgram, camera, aspect) {
     if (!(this.model instanceof IModel) || (typeof this.opacity !== 'number') || !(this.color instanceof Float32Array)) throw new Error('Bad configuration.')
     if (!(context instanceof WebGLRenderingContext) || !(shaderProgram instanceof GLShaderProgram) || !(camera instanceof GLCamera) || (typeof aspect !== 'number')) throw new Error('Bad argument.')
