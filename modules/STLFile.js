@@ -41,14 +41,14 @@ export class STLFile extends IModel {
       this.header = match1.groups['header']
 
       const triangle_reg = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/g
-      const triangle_matches = text.matchAll(triangle_reg)
       
-      const normal_match = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
-      const vertices_matches = /vertex\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
+      const normal_reg = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
+      const vertex_reg = /vertex\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
       
-      triangle_matches.forEach(vertex_string => {
-        normal_match.lastIndex = 0;
-        const match1 = normal_match.exec(vertex_string[0])
+      let single_triangle = triangle_reg.exec(text)
+      while(single_triangle != null) {
+        normal_reg.lastIndex = 0
+        const match1 = normal_reg.exec(single_triangle[0])
         const normal_x = parseFloat(match1.groups['x'])
         const normal_y = parseFloat(match1.groups['y'])
         const normal_z = parseFloat(match1.groups['z'])
@@ -57,17 +57,18 @@ export class STLFile extends IModel {
         this.normals.push(normal_x, normal_y, normal_z)
         this.normals.push(normal_x, normal_y, normal_z)
 
-        const vertices = vertex_string[0].matchAll(vertices_matches)
-        vertices.forEach(match2_string => {
-          vertices_matches.lastIndex = 0;
-          const v_match = vertices_matches.exec(match2_string[0])
-          const v_x = parseFloat(v_match.groups['x'])
-          const v_y = parseFloat(v_match.groups['y'])
-          const v_z = parseFloat(v_match.groups['z'])
+        let vertex_match = vertex_reg.exec(single_triangle[0])
+        while(vertex_match != null) {
+          const v_x = parseFloat(vertex_match.groups['x'])
+          const v_y = parseFloat(vertex_match.groups['y'])
+          const v_z = parseFloat(vertex_match.groups['z'])
 
           this.vertices.push(v_x,v_y,v_z)
-        })
-      })
+          vertex_match = vertex_reg.exec(single_triangle[0])
+        }
+
+        single_triangle = triangle_reg.exec(text)
+      }
     }
     else {
       this.header = new TextDecoder().decode(buffer.slice(0, 80))
