@@ -71,7 +71,6 @@ export class GLShaderProgram {
       directionalLightVector: this.context.getUniformLocation(this.glShaderProgram, 'directionalLightVector'),
       useLighting: this.context.getUniformLocation(this.glShaderProgram, 'useLighting'),
       isProjected: this.context.getUniformLocation(this.glShaderProgram, 'isProjected'),
-      normalMatrix: this.context.getUniformLocation(this.glShaderProgram, 'normalMatrix'),
       projectionMatrix: this.context.getUniformLocation(this.glShaderProgram, 'projectionMatrix'),
       modelMatrix: this.context.getUniformLocation(this.glShaderProgram, 'modelMatrix'),
       viewMatrix: this.context.getUniformLocation(this.glShaderProgram, 'viewMatrix'),
@@ -97,23 +96,19 @@ export class GLShaderProgram {
     GLM.mat4.multiply(normalMatrix, viewMatrix, modelMatrix)
     GLM.mat4.invert(normalMatrix, normalMatrix)
     GLM.mat4.transpose(normalMatrix, normalMatrix)
-
-    this.context.uniformMatrix4fv(this.uniformLocations.normalMatrix, false, normalMatrix)
   }
 
   loadBuffers (positions, normals) {
     if (!(positions instanceof Array) || !(normals instanceof Array)) throw new Error('Bad argument.')
 
+    this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
     this.context.bindBuffer(this.context.ARRAY_BUFFER, this.vertexBuffer)
     this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(positions), this.context.STATIC_DRAW)
-
     this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 3, this.context.FLOAT, false, 0, 0)
-    this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
 
+    this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
     this.context.bindBuffer(this.context.ARRAY_BUFFER, this.normalBuffer)
     this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(normals), this.context.STATIC_DRAW)
-
     this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 3, this.context.FLOAT, false, 0, 0)
-    this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
   }
 }

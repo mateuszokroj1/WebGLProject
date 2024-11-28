@@ -23,11 +23,15 @@ export class GLApplication {
   }
 
   preRender () {
+    this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT)
     this.context.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], 1)
     this.context.clearDepth(1.0)
     this.context.enable(this.context.DEPTH_TEST)
+    this.context.enable(this.context.BLEND)
+    this.context.enable(this.context.CULL_FACE)
     this.context.depthFunc(this.context.LEQUAL)
-    this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT)
+    this.context.blendFunc(this.context.SRC_ALPHA, this.context.ONE_MINUS_SRC_ALPHA)
+    
     this.context.viewport(0, 0, this.context.canvas.clientWidth, this.context.canvas.clientHeight)
   }
 
