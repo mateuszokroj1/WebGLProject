@@ -4,7 +4,6 @@ attribute vec3 normal;
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
-uniform mat4 normalMatrix;
 uniform bool isProjected;
 uniform bool useLighting;
 
@@ -16,7 +15,7 @@ varying highp vec3 vectorLighting;
 
 void main()
 {
-    highp vec4 transformed = viewMatrix * modelMatrix * vec4(position, 1.0);
+    highp vec4 transformed = modelMatrix * viewMatrix * vec4(position, 1.0);
     gl_Position = isProjected ? projectionMatrix * transformed : transformed;
 
     if(!useLighting)
@@ -25,6 +24,7 @@ void main()
         return;
     }
 
+    highp mat4 normalMatrix = transpose(inverse(modelMatrix * viewMatrix))
     highp vec4 transformedNormal = normalMatrix * vec4(normalize(normal), 0.0);
     highp vec3 dirLightVector = normalize(directionalLightVector);
 

@@ -6,8 +6,17 @@ export class GLCamera {
   far
   positionInWorld
   rotation
+  targetPosition
 
-  constructor (angleOfView, near, far, positionInWorld, rotation) {
+  lookAt(position) {
+    if(position instanceof GLM.vec3)
+    {
+      this.targetPosition = position
+    }
+    else throw new Error("Required GLM vec3")
+  }
+
+  setView (angleOfView, near, far, positionInWorld, rotation) {
     if (angleOfView > 0.0 && near < far && near && positionInWorld instanceof Float32Array && positionInWorld.length === 3 && rotation instanceof Float32Array && rotation.length === 3) {
       this.angleOfView = angleOfView
       this.near = near
