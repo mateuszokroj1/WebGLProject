@@ -1,6 +1,5 @@
 import * as GLM from '../../node_modules/gl-matrix/esm/index.js'
 
-
 export class IModel {
   constructor () {
     if (this.constructor === IModel) {

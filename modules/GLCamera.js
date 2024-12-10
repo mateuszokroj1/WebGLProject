@@ -1,34 +1,45 @@
 import * as GLM from '../node_modules/gl-matrix/esm/index.js'
+import {IModel} from 'abstracts/IModel.js'
 
 export class GLCamera {
   angleOfView
   near
   far
   positionInWorld
-  rotation
-  targetPosition
+  direction
+  boundingBox
 
-  lookAt(position) {
-    if(position instanceof GLM.vec3)
+  constructor() {
+    this.angleOfView = 0.0
+    this.near = 0.0
+    this.far = 0.0
+    this.positionInWorld
+  }
+
+  lookAt(object) {
+    if(object instanceof IModel)
     {
       this.targetPosition = position
     }
     else throw new Error("Required GLM vec3")
   }
 
-  setView (angleOfView, near, far, positionInWorld, rotation) {
-    if (angleOfView > 0.0 && near < far && near && positionInWorld instanceof Float32Array && positionInWorld.length === 3 && rotation instanceof Float32Array && rotation.length === 3) {
+  setView (angleOfView, near, far) {
+    if (angleOfView > 0.0 && near < far && near) {
       this.angleOfView = angleOfView
       this.near = near
       this.far = far
-      this.positionInWorld = positionInWorld
-      this.rotation = rotation
     } else {
       throw new Error('Bad argument.')
     }
   }
 
-  getViewMatrix () {
+  getViewMatrix (rotate) {
+    if(!(rotate instanceof GLM.vec3))
+    {
+      throw new Error('Bad argument.')
+    }
+
     const trafo = GLM.mat4.create()
     GLM.mat4.identity(trafo)
 
@@ -41,7 +52,7 @@ export class GLCamera {
     return trafo
   }
 
-  getPerspectiveMatrix (aspect) {
+  getPerspectiveMatrix (angleOfView, near, far, aspect) {
     const trafo = GLM.mat4.create()
     GLM.mat4.perspective(trafo, this.angleOfView, aspect, this.near, this.far)
 
