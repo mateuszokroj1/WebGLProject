@@ -1,3 +1,4 @@
+import { EPSILON } from 'gl-matrix/esm/common.js'
 import * as GLM from '../node_modules/gl-matrix/esm/index.js'
 import {IModel} from 'abstracts/IModel.js'
 
@@ -7,7 +8,6 @@ export class GLCamera {
   far
   positionInWorld
   direction
-  boundingBox
 
   constructor() {
     this.angleOfView = 0.0
@@ -34,8 +34,8 @@ export class GLCamera {
     }
   }
 
-  getViewMatrix (rotate) {
-    if(!(rotate instanceof GLM.vec3))
+  getViewMatrix (rotate, zoom) {
+    if(!(rotate instanceof GLM.vec3) || typeof zoom === 'number' && zoom > EPSILON)
     {
       throw new Error('Bad argument.')
     }

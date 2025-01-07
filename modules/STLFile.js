@@ -1,3 +1,6 @@
+import * as GLM from '../node_modules/gl-matrix/esm/index.js'
+
+import { Box3d } from './Box3d.js'
 import { IModel } from './abstracts/IModel.js'
 
 export class STLFile extends IModel {
@@ -15,6 +18,9 @@ export class STLFile extends IModel {
   }
 
   async load() {
+    this.boundingBox = new Box3d()
+    let vec = GLM.vec3.create()
+
     const file = await fetch(this.file_url)
     const buffer = await file.arrayBuffer()
 
@@ -62,6 +68,10 @@ export class STLFile extends IModel {
           const v_x = parseFloat(vertex_match.groups['x'])
           const v_y = parseFloat(vertex_match.groups['y'])
           const v_z = parseFloat(vertex_match.groups['z'])
+          vec[0] = v_x;
+          vec[1] = v_y;
+          vec[2] = v_z;
+          this.boundingBox.add(vec3)
 
           this.vertices.push(v_x,v_y,v_z)
           vertex_match = vertex_reg.exec(single_triangle[0])
@@ -83,14 +93,26 @@ export class STLFile extends IModel {
         this.vertices.push(floats[0])
         this.vertices.push(floats[1])
         this.vertices.push(floats[2])
+        vec[0] = floats[0]
+        vec[1] = floats[1]
+        vec[2] = floats[2]
+        this.boundingBox.add(vec3)
 
         this.vertices.push(floats[3])
         this.vertices.push(floats[4])
         this.vertices.push(floats[5])
+        vec[0] = floats[3]
+        vec[1] = floats[4]
+        vec[2] = floats[5]
+        this.boundingBox.add(vec3)
 
         this.vertices.push(floats[6])
         this.vertices.push(floats[7])
         this.vertices.push(floats[8])
+        vec[0] = floats[6]
+        vec[1] = floats[7]
+        vec[2] = floats[8]
+        this.boundingBox.add(vec3)
 
         for (let j = 1; j <= 3; j++) {
           this.normals.push(floats[9])
@@ -105,13 +127,5 @@ export class STLFile extends IModel {
 
   getVertices() {
     return { vertices: this.vertices, normals: this.normals }
-  }
-
-  calcBoundingBox() {
-    return {
-      min: GLM.vec3.fromValues(0,0,0),
-      max: GLM.vec3.fromValues(0,0,0),
-      center: GLM.vec3.fromValues(0,0,0)
-    }
   }
 }
