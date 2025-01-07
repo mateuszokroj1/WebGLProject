@@ -4,10 +4,9 @@ import { Box3d } from './Box3d.js'
 import { IModel } from './abstracts/IModel.js'
 
 export class STLFile extends IModel {
-  file_url
+  file_url = null
   header = ''
-  vertices = []
-  normals = []
+
   is_loaded = false
 
   constructor(fileUrl) {
@@ -41,18 +40,18 @@ export class STLFile extends IModel {
 
       const full_text_checker = /^solid\s+(?<header>\w+)[\s\S]{100,}$/g
       const match1 = full_text_checker.exec(text)
-      if(match1 == null)
+      if (match1 == null)
         return
 
       this.header = match1.groups['header']
 
       const triangle_reg = /facet\s+normal\s+(\-?\d+((\.|\,)\d+)?\s+){3}outer\s+loop\s+(vertex\s+(\-?\d+((\.|\,)\d+)?\s+){3}){3}endloop\s+endfacet\s+/g
-      
+
       const normal_reg = /normal\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
       const vertex_reg = /vertex\s+(?<x>\-?\d+((\.|\,)\d+)?)\s+(?<y>\-?\d+((\.|\,)\d+)?)\s+(?<z>\-?\d+((\.|\,)\d+)?)/g
-      
+
       let single_triangle = triangle_reg.exec(text)
-      while(single_triangle != null) {
+      while (single_triangle != null) {
         normal_reg.lastIndex = 0
         const match1 = normal_reg.exec(single_triangle[0])
         const normal_x = parseFloat(match1.groups['x'])
@@ -64,16 +63,16 @@ export class STLFile extends IModel {
         this.normals.push(normal_x, normal_y, normal_z)
 
         let vertex_match = vertex_reg.exec(single_triangle[0])
-        while(vertex_match != null) {
+        while (vertex_match != null) {
           const v_x = parseFloat(vertex_match.groups['x'])
           const v_y = parseFloat(vertex_match.groups['y'])
           const v_z = parseFloat(vertex_match.groups['z'])
           vec[0] = v_x;
           vec[1] = v_y;
           vec[2] = v_z;
-          this.boundingBox.add(vec3)
+          this.boundingBox.add(vec)
 
-          this.vertices.push(v_x,v_y,v_z)
+          this.vertices.push(v_x, v_y, v_z)
           vertex_match = vertex_reg.exec(single_triangle[0])
         }
 
@@ -96,7 +95,7 @@ export class STLFile extends IModel {
         vec[0] = floats[0]
         vec[1] = floats[1]
         vec[2] = floats[2]
-        this.boundingBox.add(vec3)
+        this.boundingBox.add(vec)
 
         this.vertices.push(floats[3])
         this.vertices.push(floats[4])
@@ -104,7 +103,7 @@ export class STLFile extends IModel {
         vec[0] = floats[3]
         vec[1] = floats[4]
         vec[2] = floats[5]
-        this.boundingBox.add(vec3)
+        this.boundingBox.add(vec)
 
         this.vertices.push(floats[6])
         this.vertices.push(floats[7])
@@ -112,7 +111,7 @@ export class STLFile extends IModel {
         vec[0] = floats[6]
         vec[1] = floats[7]
         vec[2] = floats[8]
-        this.boundingBox.add(vec3)
+        this.boundingBox.add(vec)
 
         for (let j = 1; j <= 3; j++) {
           this.normals.push(floats[9])
@@ -122,10 +121,8 @@ export class STLFile extends IModel {
       }
     }
 
+    this.boundingBox.translateCenterToZero()
+    this.boundingBox.calculateScalingTo(10)
     this.is_loaded = true
-  }
-
-  getVertices() {
-    return { vertices: this.vertices, normals: this.normals }
   }
 }

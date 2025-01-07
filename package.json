@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@types/node": "22.7.4",
+    "@types/node": "22.10.2",
     "gl-matrix": "3.4.3"
   }
 }
