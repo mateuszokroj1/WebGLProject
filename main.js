@@ -14,27 +14,25 @@ class Game {
   constructor () {
     this.app = new GLApplication(window, 'canvas#screen')
     this.obj = new VisibleObject('car')
-
-    const stl = new STLFile(new URL('/assets/cube.STL', window.document.baseURI))
-    stl.load()
-    this.obj.model = stl
-    this.obj.useProjection = false
-    this.obj.color = GLM.vec3.fromValues(1, 0, 0)
-    this.obj.transformation.rotation_angles = this.rotation
-
-    this.app.visibleObjects.push(this.obj)
   }
 
   async init () {
+    const stl = new STLFile(new URL('/assets/cube.STL', window.document.baseURI))
+    await stl.load()
+    this.obj.model = stl
+    this.obj.useProjection = false
+    this.obj.color = GLM.vec3.fromValues(1, 0, 0)
+
+    this.app.visibleObjects.push(this.obj)
+
     const shaderProgram = new GLShaderProgram(this.app.context)
     await shaderProgram.load()
 
     this.app.backgroundColor = GLM.vec3.fromValues(0.1, 0.1, 0.1)
-    this.app.camera = new GLCamera(Math.PI / 2, 0.01, 1000.0, GLM.vec3.fromValues(0, 0, -200000), GLM.vec3.fromValues(0, 0, 0))
     this.app.preRender()
-
     this.app.setShaderProgram(shaderProgram)
     this.app.render()
+
     window.document.addEventListener('mousedown', this.onMouseDown)
     window.document.addEventListener('mouseup', this.onMouseUp)
     window.document.addEventListener('mousemove', this.onMouseMove)
@@ -81,6 +79,7 @@ class Game {
 
   render () {
     this.app.preRender()
+    this.app.camera.lookAt(this.app.visibleObjects[0])
     this.app.render()
   }
 }
