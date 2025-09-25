@@ -1,7 +1,14 @@
-
 import React from 'react'
-import './main.scss'
+import Game from './logics/Game'
+import './assets/styles/App.scss'
 
 export default class App extends React.Component {
+    game = Game()
 
+    
+
+    render() {
+return React.createElement('div', { id: 'app' }, {game.render()});
+
+    }
 }

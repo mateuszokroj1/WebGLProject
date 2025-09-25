@@ -1,8 +1,0 @@
-﻿################################################################################
-# Ten plik .gitignore został utworzony automatycznie przez Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
-/node_modules
-/package-lock.json
-web.config
