@@ -3,12 +3,12 @@ import Game from './logics/Game'
 import './assets/styles/App.scss'
 
 export default class App extends React.Component {
-    game = Game()
+    game = Game();
 
     
 
     render() {
-return React.createElement('div', { id: 'app' }, {game.render()});
+return React.createElement('div', { id: 'app' }, this.game.render());
 
     }
 }

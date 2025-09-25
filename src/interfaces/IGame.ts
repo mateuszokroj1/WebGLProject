@@ -1,8 +1,9 @@
-export default interface IGame {
-  assignRenderer(): void;
-    start(): void;
-    stop(): void;
-    zoom(): void;
-    move(): void;
+import IRenderer from "./IRenderer";
 
+export default interface IGame {
+  assignRenderer(renderer: IRenderer): void;
+  start(): void;
+  stop(): void;
+  zoom(): void;
+  move(): void;
 }
