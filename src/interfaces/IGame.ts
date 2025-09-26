@@ -1,7 +1,7 @@
 import IRenderer from "./IRenderer";
 
 export default interface IGame {
-  assignRenderer(renderer: IRenderer): void;
+  assignRenderer<TRenderer implements IRenderer>(): void;
   start(): void;
   stop(): void;
   zoom(): void;

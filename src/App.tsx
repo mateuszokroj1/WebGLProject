@@ -3,7 +3,7 @@ import Game from './logics/Game'
 import './assets/styles/App.scss'
 
 export default class App extends React.Component {
-    game = new Game({});
+    game = new Game();
 
 
 
