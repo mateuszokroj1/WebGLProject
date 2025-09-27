@@ -1,3 +1,5 @@
+import IRenderingContext from "../models/RenderingContext";
+
 export default interface IRenderer {
-    render(canvas : HTMLCanvasElement): void;
+    render(context: IRenderingContext): void;
 }
