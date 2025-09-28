@@ -7,7 +7,7 @@ export class Transformation {
     public scale: GLM.vec3 = GLM.vec3.fromValues(1, 1, 1);
     public scale_anchorpoint: GLM.vec3 = GLM.vec3.fromValues(0, 0, 0);
 
-    getModelTransformation(): GLM.mat4 {
+    getTransformationMatrix(): GLM.mat4 {
         let model_matrix: GLM.mat4 = GLM.mat4.create();
         GLM.mat4.translate(model_matrix, model_matrix, this.translation);
         GLM.mat4.translate(model_matrix, model_matrix, this.rotation_anchorpoint);

@@ -2,8 +2,11 @@ import Camera from "../models/Camera";
 import IRenderer from "./IRenderer";
 
 export default interface IGame {
-  assignRenderer(renderer: IRenderer): void;
-  assignCamera(camera: Camera): void;
-  start(): void;
+  camera: Camera;
+  get isStarted(): boolean;
+
+  renderer: IRenderer | null;
+  
+  start(): Promise<void>;
   stop(): void;
 }
