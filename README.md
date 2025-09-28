@@ -1,7 +1,7 @@
 # WebGL example app
 
 ## Minimum requirements
-* Web browser with support for ECMAScript 5 (JavaScript), WebGL (OpenGL ES 3.0)
+* Web browser with support for ECMAScript 2015 (JavaScript), WebGL (OpenGL ES 3.0)
 * Node.js with Node Package Manager
 
 ## Preview
