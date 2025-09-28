@@ -1,8 +1,11 @@
-import { mat4 } from "gl-matrix";
+import * as GLM from "gl-matrix";
 import IRenderer from "../interfaces/IRenderer";
 import VisibleObjectBase from "../models/VisibleObjectBase";
 import { IInitializable } from "../interfaces/IInitializable";
 import Vertices from "../models/Vertices";
+import { ISceneGraphComponent } from "../interfaces/ISceneGraph";
+import { Transformation } from "../models/Transformation";
+import Material from "./Material";
 
 export default class STLObject extends VisibleObjectBase implements IInitializable<HTMLCanvasElement> {
     constructor(name: string, file_pathOrData: string | Vertices) {
@@ -14,8 +17,11 @@ export default class STLObject extends VisibleObjectBase implements IInitializab
         }
     }
 
+    public objectTransformation: Transformation = new Transformation();
     private data: Vertices | null = null;
     private file_path: string = "";
+    public parent_group: ISceneGraphComponent | null = null;
+    public material: Material | null = null;
 
     get isInitialized(): boolean {
         return this.data != null;
@@ -26,19 +32,25 @@ export default class STLObject extends VisibleObjectBase implements IInitializab
         if (!request.ok)
             throw new Error(`Cannot load STL file from path ${this.file_path}. Status: ${request.status} ${request.statusText}.`);
 
-
+        //TODO copy from old implementation
 
         this.data = new Vertices();
     }
 
+    getModelTransformation(): GLM.mat4 {
+        let object_trafo = this.objectTransformation.getTransformationMatrix();
 
+        if (this.parent_group != null)
+            GLM.mat4.multiply(object_trafo, object_trafo, this.parent_group.getModelTransformation());
 
-
-    getModelTransformation(): mat4 {
-        throw new Error("Method not implemented.");
+        return object_trafo;
     }
 
     render(renderContext: IRenderer): void {
-        throw new Error("Method not implemented.");
+        renderContext.useMaterial(this.material);
+        renderContext.useModelTransformation(this.getModelTransformation());
+        renderContext.drawTriangles(this.data);
+
+        renderContext.flush();
     }
 }

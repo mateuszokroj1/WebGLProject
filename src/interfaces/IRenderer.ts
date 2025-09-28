@@ -1,6 +1,8 @@
-import IRenderingContext from "../models/RenderingContext";
-import { IInitializable } from "./IInitializable";
+import * as GLM from 'gl-matrix';
 
 export default interface IRenderer {
-    render(context: IRenderingContext): void;
+    useMaterial(material: Material): void;
+    useModelTransformation(trafoMatrix: GLM.mat4): void;
+    drawTriangles(trainglesData: Vertices): void;
+    flush(): void;
 }

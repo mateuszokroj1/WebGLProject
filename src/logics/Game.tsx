@@ -3,7 +3,7 @@ import IGame from '../interfaces/IGame'
 import IRenderer from '../interfaces/IRenderer'
 import Camera from '../models/Camera';
 import { ISceneGraph } from '../interfaces/ISceneGraph';
-import Scene from './Scene';
+import Scene from './SceneGraph';
 import { IInitializable } from '../interfaces/IInitializable';
 
 export default class Game extends React.Component implements IGame {
@@ -88,7 +88,7 @@ export default class Game extends React.Component implements IGame {
         }
 
         try {
-            this.renderer.render({ canvas: this.frame_element.current, camera: this.camera, scene_graph: this.scene_graph });
+            this.scene_graph.render({ canvas: this.frame_element.current, camera: this.camera, scene_graph: this.scene_graph });
         } catch (e) {
             console.error(e);
             this.stop();
