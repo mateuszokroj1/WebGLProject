@@ -1,6 +1,7 @@
-import React from 'react'
-import Game from './logics/Game'
-import './assets/styles/App.scss'
+import React from 'react';
+import * as GLM from 'gl-matrix';
+import Game from './logics/Game';
+import './assets/styles/App.scss';
 import Camera from './models/Camera';
 import { OrthoProjection, PerspectiveProjection } from './models/CameraProjection';
 import WebGlRenderer from './renderer/WebGlRenderer';
@@ -31,43 +32,102 @@ export default class App extends React.Component {
 
     // Events
 
-    private onMouseDown = (e: MouseEvent) => {
+    private pointers: GLM.vec2[] = []
+
+    private onMouseDown(e: MouseEvent): void {
+        if (this.pointers.length > 0 || e.button != 0)
+            return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.pointers = [GLM.vec2.fromValues(e.clientX, e.clientY)];
+    }
+
+    private onMouseUp(e: MouseEvent): void {
+        if (this.pointers.length != 1)
+            return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.pointers = [];
+    }
+
+    private onMouseMove(e: MouseEvent): void {
+        if (this.pointers.length != 1)
+            return;
+
+        if (e.buttons != 1) {
+            this.pointers = [];
+            return;
+        }
+
         e.preventDefault();
         e.stopPropagation();
     }
 
-    private onMouseUp = (e: MouseEvent) => {
+    private onWheel(e: WheelEvent): void {
         e.preventDefault();
         e.stopPropagation();
     }
 
-    private onMouseMove = (e: MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    private onWheel = (e: WheelEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    private onResize = (e: Event) => {
+    private onResize(): void {
         this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement).clientWidth / (this.main_element.current as HTMLDivElement).clientHeight;
+    }
+
+    private onTouchStart(e: TouchEvent): void {
+        if (this.pointers.length > 0)
+            return;
+
+        if (e.touches.length == 1) {
+            this.pointers = [GLM.vec2.fromValues(e.touches[0].clientX, e.touches[0].clientY)];
+
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        else if (e.touches.length == 2) {
+            this.pointers = [GLM.vec2.fromValues(e.touches[0].clientX, e.touches[0].clientY), GLM.vec2.fromValues(e.touches[1].clientX, e.touches[1].clientY)];
+
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    private onTouchMove(e: TouchEvent): void {
+        if (e.touches.length != this.pointers.length) {
+            this.pointers = [];
+            return;
+        }
+    }
+
+    private onTouchStop(e: Event): void {
+        if (this.pointers.length < 1)
+            return;
+
+        this.pointers = [];
+        e.preventDefault();
+        e.stopPropagation();
     }
 
     private mainElementChanged(): void {
         if (this.main_element.current != null) {
-            this.main_element.current.addEventListener('mousedown', this.onMouseDown);
-            this.main_element.current.addEventListener('mouseup', this.onMouseUp);
-            this.main_element.current.addEventListener('mousemove', this.onMouseMove);
-            this.main_element.current.addEventListener('wheel', this.onWheel);
-            this.main_element.current.addEventListener('resize', this.onResize);
+            this.main_element.current.addEventListener('mousedown', (e) => { this.onMouseDown(e) });
+            this.main_element.current.addEventListener('mouseup', (e) => { this.onMouseUp(e) });
+            this.main_element.current.addEventListener('mousemove', (e) => { this.onMouseMove(e) });
+            this.main_element.current.addEventListener('wheel', (e) => { this.onWheel(e) });
+            this.main_element.current.addEventListener('resize', () => { this.onResize() });
+            this.main_element.current.addEventListener('touchstart', (e) => { this.onTouchStart(e) });
+            this.main_element.current.addEventListener('touchmove', (e) => { this.onTouchMove(e) });
+            this.main_element.current.addEventListener('touchcancel', (e) => { this.onTouchStop(e) });
+            this.main_element.current.addEventListener('touchend', (e) => { this.onTouchStop(e) });
 
             this.perspective_projection.aspect = this.main_element.current.clientWidth / this.main_element.current.clientHeight;
         }
     }
 
     private changeProjectionMode(e: React.UIEvent): void {
+        e.preventDefault();
         e.stopPropagation();
 
         if (this.projection_mode === ProjectionMode.ORTHOGRAPHIC) {
@@ -80,6 +140,7 @@ export default class App extends React.Component {
     }
 
     private resetCameraSettings(e: React.UIEvent): void {
+        e.preventDefault();
         e.stopPropagation();
 
         this.camera = new Camera();
@@ -100,8 +161,8 @@ export default class App extends React.Component {
 
     render() {
         const toolbar = (<div className="toolbar">
-            <button onClick={this.changeProjectionMode}>Change projection mode</button>
-            <button onClick={this.resetCameraSettings}>Reset camera settings</button>
+            <button onClick={(e) => { this.changeProjectionMode(e); }}>Change projection mode</button>
+            <button onClick={(e) => { this.resetCameraSettings(e); }}>Reset camera settings</button>
         </div>);
 
         return React.createElement('div', { id: 'app', ref: (element) => { this.main_element.current = element as HTMLDivElement; this.mainElementChanged(); } }, this.game.render(), toolbar);
