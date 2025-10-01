@@ -3,16 +3,13 @@ import IRenderer from "../interfaces/IRenderer";
 import { IInitializable } from "../interfaces/IInitializable";
 import { Transformation } from "../models/Transformation";
 import { ISceneGraphComponent, ISceneGraphGroup } from "../interfaces/ISceneGraph";
+import * as Tools from "../tools/Functions";
 
 export abstract class SceneGraphComponentBase implements ISceneGraphComponent {
     public readonly id: string = crypto.randomUUID();
 
     abstract getModelTransformation(): GLM.mat4;
-    abstract render(renderContext: IRenderer): void;
-}
-
-export function isInType<T>(obj: any): obj is T {
-    return true;
+    abstract acceptRenderer(visitor: IRenderer): void;
 }
 
 abstract class SceneGraphGroupBase extends SceneGraphComponentBase implements ISceneGraphGroup {
@@ -39,7 +36,7 @@ abstract class SceneGraphGroupBase extends SceneGraphComponentBase implements IS
             if (child.id === other.id)
                 return true;
 
-            if (isInType<ISceneGraphGroup>(child) && child.contains(other))
+            if (Tools.isInType<ISceneGraphGroup>(child) && child.contains(other))
                 return true;
         }
 
@@ -47,7 +44,7 @@ abstract class SceneGraphGroupBase extends SceneGraphComponentBase implements IS
     }
 }
 
-export default class SceneGraphGroup extends SceneGraphGroupBase implements IInitializable<HTMLCanvasElement> {
+export class SceneGraphGroup extends SceneGraphGroupBase implements IInitializable<HTMLCanvasElement> {
     public groupTransformation: Transformation = new Transformation();
 
     getModelTransformation(): GLM.mat4 {
@@ -56,7 +53,7 @@ export default class SceneGraphGroup extends SceneGraphGroupBase implements IIni
 
     get isInitialized(): boolean {
         for (const child of this.children) {
-            if (isInType<IInitializable<any>>(child) && !child.isInitialized)
+            if (Tools.isInType<IInitializable<any>>(child) && !child.isInitialized)
                 return false;
         }
 
@@ -65,12 +62,23 @@ export default class SceneGraphGroup extends SceneGraphGroupBase implements IIni
 
     async initialize(argument: HTMLCanvasElement): Promise<void> {
         for (let child of this.children) {
-            if (isInType<IInitializable<HTMLCanvasElement>>(child))
+            if (Tools.isInType<IInitializable<HTMLCanvasElement>>(child))
                 await child.initialize(argument);
         }
     }
 
-    render(renderContext: IRenderer): void {
-        throw new Error("Method not implemented.");
+    acceptRenderer(visitor: IRenderer): void {
+        for(const child of this.children)
+            child.acceptRenderer(visitor);
+    }
+}
+
+export class EmptyScene extends SceneGraphComponentBase
+{
+    getModelTransformation(): GLM.mat4 {
+        return GLM.mat4.identity(GLM.mat4.create());
+    }
+
+    acceptRenderer(_visitor: IRenderer): void {
     }
 }

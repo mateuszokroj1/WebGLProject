@@ -122,7 +122,7 @@ export default class App extends React.Component {
             this.main_element.current.addEventListener('touchcancel', (e) => { this.onTouchStop(e) });
             this.main_element.current.addEventListener('touchend', (e) => { this.onTouchStop(e) });
 
-            this.perspective_projection.aspect = this.main_element.current.clientWidth / this.main_element.current.clientHeight;
+            this.onResize();
         }
     }
 

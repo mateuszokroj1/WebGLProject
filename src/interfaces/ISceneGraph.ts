@@ -2,10 +2,10 @@ import * as GLM from 'gl-matrix';
 import IRenderer from './IRenderer';
 
 export interface ISceneGraphComponent {
-    readonly id: string;
+    get id(): string;
 
     getModelTransformation(): GLM.mat4;
-    render(renderContext: IRenderer): void;
+    acceptRenderer(visitor: IRenderer): void;
 }
 
 export interface ISceneGraphGroup extends ISceneGraphComponent {

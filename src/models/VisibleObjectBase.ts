@@ -1,6 +1,6 @@
 import { mat4 } from "gl-matrix";
 import IRenderer from "../interfaces/IRenderer";
-import { ISceneGraphComponent, SceneGraphComponentBase } from "../interfaces/ISceneGraph";
+import { SceneGraphComponentBase } from "../logics/SceneGraph";
 
 export default abstract class VisibleObjectBase extends SceneGraphComponentBase {
     constructor(name: string) {
@@ -11,5 +11,5 @@ export default abstract class VisibleObjectBase extends SceneGraphComponentBase 
     readonly name: string;
 
     abstract getModelTransformation(): mat4;
-    abstract render(renderContext: IRenderer): void;
+    abstract acceptRenderer(visitor: IRenderer): void;
 }

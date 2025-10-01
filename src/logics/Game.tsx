@@ -1,10 +1,10 @@
-import React from 'react'
-import IGame from '../interfaces/IGame'
-import IRenderer from '../interfaces/IRenderer'
+import React from 'react';
+import IGame from '../interfaces/IGame';
+import IRenderer from '../interfaces/IRenderer';
 import Camera from '../models/Camera';
-import { ISceneGraph } from '../interfaces/ISceneGraph';
-import Scene from './SceneGraph';
 import { IInitializable } from '../interfaces/IInitializable';
+import { ISceneGraphComponent } from '../interfaces/ISceneGraph';
+import { EmptyScene } from './SceneGraph';
 
 export default class Game extends React.Component implements IGame {
     constructor() {
@@ -21,7 +21,7 @@ export default class Game extends React.Component implements IGame {
     private _renderer: IRenderer | null = null;
     private _camera: Camera = new Camera();
     private rendering_timer_handle: number | null = null;
-    public scene_graph: ISceneGraph = new Scene();
+    public scene_graph: ISceneGraphComponent = new EmptyScene;
 
     get isStarted(): boolean {
         return this._isStarted;
@@ -88,7 +88,11 @@ export default class Game extends React.Component implements IGame {
         }
 
         try {
-            this.scene_graph.render({ canvas: this.frame_element.current, camera: this.camera, scene_graph: this.scene_graph });
+            this.renderer.configure(this.frame_element.current);
+            this.renderer.useCamera(this.camera);
+            //TODO lighting
+
+            this.renderer.visitSceneComponent(this.scene_graph);
         } catch (e) {
             console.error(e);
             this.stop();
