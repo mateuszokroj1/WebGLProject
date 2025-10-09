@@ -1,4 +1,3 @@
-import { SassColor } from 'sass';
 import * as GLM from 'gl-matrix';
 
 export default class Material {

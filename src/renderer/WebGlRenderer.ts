@@ -48,35 +48,65 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
     }
 
     useCamera(camera: Camera): IRenderer {
-        throw new Error("Method not implemented.");
+        this.camera = camera;
+
+        return this;
     }
 
     setAmbientLightColor(color: GLM.vec3): IRenderer {
-        throw new Error("Method not implemented.");
+        this.ambient_light_color = color;
+
+        return this;
     }
 
     setDiffuseLight(position: GLM.vec3, color: GLM.vec3): IRenderer {
-        throw new Error("Method not implemented.");
+        this.diffuse_light_position = position;
+        this.diffuse_light_color = color;
+
+        return this;
     }
 
     setSpecularLight(position: GLM.vec3): IRenderer {
-        throw new Error("Method not implemented.");
+        this.specular_light_position = position;
+
+        return this;
     }
 
     useMaterial(material: Material): IRenderer {
-        throw new Error("Method not implemented.");
+        this.material = material;
+
+        return this;
     }
 
     useModelTransformation(trafoMatrix: GLM.mat4): IRenderer {
-        throw new Error("Method not implemented.");
+        this.model_transformation = trafoMatrix;
+
+        return this;
     }
 
     drawTriangles(trianglesData: Vertices): IRenderer {
-        throw new Error("Method not implemented.");
+        this.vertices = new Float32Array(trianglesData.vertices);
+        this.normals = new Float32Array(trianglesData.normals);
+
+        return this;
+    }
+
+    configureWorldParameters(backgroundColor: GLM.vec3): void {
+        let context = this.program.getCurrentContext();
+        if(!context) throw new Error('WebGL context not available.');
+
+        context.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
+        context.enable(context.DEPTH_TEST);
+        context.depthFunc(context.LEQUAL);
+        context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
+        context.viewport(0, 0, context.canvas.width, context.canvas.height);
     }
 
     flush(): void {
-        //;
+        if (!this.isInitialized) throw new Error('Renderer not initialized.');
+        if (this.camera == null) throw new Error('Camera not set.');
+
+// buffers and draw
 
         this.reset();
     }

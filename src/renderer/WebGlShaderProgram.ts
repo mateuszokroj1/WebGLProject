@@ -1,3 +1,4 @@
+import * as GLM from 'gl-matrix';
 import { IInitializable } from "../interfaces/IInitializable";
 import { getWebGlContext } from "../tools/Functions";
 export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElement> {
@@ -7,6 +8,10 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
     }
 
     private shader_program: WebGLProgram | null = null;
+    public attrib_locations: any = {};
+    public uniform_locations: any = {};
+    public vertex_buffer: WebGLBuffer | null = null;
+    private context: WebGLRenderingContext | null = null;
 
     async initialize(canvas: HTMLCanvasElement): Promise<void> {
         const context = getWebGlContext(canvas);
@@ -60,76 +65,39 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
         context.deleteShader(vertex_shader);
         context.deleteShader(fragment_shader);
 
-/*
-        this.attribLocations = {
-              vertexPosition: this.context.getAttribLocation(this.glShaderProgram, 'a_position'),
-              vertexNormal: this.context.getAttribLocation(this.glShaderProgram, 'a_normal')
-            }
-            this.uniformLocations = {
-              ambientLightColor: this.context.getUniformLocation(this.glShaderProgram, 'u_ambientLight'),
-              directionalLightColor: this.context.getUniformLocation(this.glShaderProgram, 'u_directionalLightColor'),
-              directionalLightVector: this.context.getUniformLocation(this.glShaderProgram, 'u_directionalLightVector'),
-              useLighting: this.context.getUniformLocation(this.glShaderProgram, 'u_useLighting'),
-              isProjected: this.context.getUniformLocation(this.glShaderProgram, 'u_isProjected'),
-              projectionMatrix: this.context.getUniformLocation(this.glShaderProgram, 'u_projectionMatrix'),
-              modelMatrix: this.context.getUniformLocation(this.glShaderProgram, 'u_modelMatrix'),
-              viewMatrix: this.context.getUniformLocation(this.glShaderProgram, 'u_viewMatrix'),
-              basicColor: this.context.getUniformLocation(this.glShaderProgram, 'u_basicColor'),
-              normalMatrix: this.context.getUniformLocation(this.glShaderProgram, 'u_normalMatrix'),
-              lightDirectionMatrix: this.context.getUniformLocation(this.glShaderProgram, 'u_lightDirectionMatrix')
-            }
-        
-            this.vertexBuffer = this.context.createBuffer()
-            this.normalBuffer = this.context.createBuffer()
-          }
-        
-          configureWorldParameters(viewMatrix, projectionMatrix, ambientLightColor, directionalLightColor, directionalLightVector) {
-            this.context.uniform4fv(this.uniformLocations.ambientLightColor, ambientLightColor)
-            this.context.uniform3fv(this.uniformLocations.directionalLightColor, directionalLightColor)
-            this.context.uniform3fv(this.uniformLocations.directionalLightVector, directionalLightVector)
-            this.context.uniformMatrix4fv(this.uniformLocations.viewMatrix, false, viewMatrix)
-            this.context.uniformMatrix4fv(this.uniformLocations.projectionMatrix, false, projectionMatrix)
-        
-            const lightDirectionMatrix = GLM.mat3.create()
-            GLM.mat3.normalFromMat4(lightDirectionMatrix, viewMatrix)
-            GLM.mat3.invert(lightDirectionMatrix, lightDirectionMatrix)
-            GLM.mat3.transpose(lightDirectionMatrix, lightDirectionMatrix)
-        
-            this.context.uniformMatrix3fv(this.uniformLocations.lightDirectionMatrix, false, lightDirectionMatrix)
-          }
-        
-          renderVisibleObject(object, viewMatrix) {
-            if (!(object instanceof VisibleObject) || !(viewMatrix instanceof Float32Array)) throw new Error('Bad argument.')
-        
-            this.context.uniform4f(this.uniformLocations.basicColor, object.color[0], object.color[1], object.color[2], Math.max(0, Math.min(object.opacity, 1)))
-            this.context.uniform1i(this.uniformLocations.useLighting, object.useLighting)
-            this.context.uniform1i(this.uniformLocations.isProjected, object.useProjection)
-        
-            const modelMatrix = object.importTransformation.calculateMatrix()
-            const m2 = object.transformation.calculateMatrix()
-            GLM.mat4.multiply(modelMatrix, modelMatrix, m2)
-        
-            this.context.uniformMatrix4fv(this.uniformLocations.modelMatrix, false, modelMatrix)
-        
-            const normalMatrix4 = GLM.mat4.create()
-            GLM.mat4.multiply(normalMatrix4, viewMatrix, modelMatrix)
-            
-            const normalMatrix = GLM.mat3.create()
-            GLM.mat3.normalFromMat4(normalMatrix, normalMatrix4)
-            GLM.mat3.invert(normalMatrix, normalMatrix)
-            //GLM.mat3.transpose(normalMatrix, normalMatrix)
-        
-            this.context.uniformMatrix3fv(this.uniformLocations.normalMatrix, false, normalMatrix)
-        
-            this.context.enableVertexAttribArray(this.attribLocations.vertexPosition)
-            this.context.bindBuffer(this.context.ARRAY_BUFFER, this.vertexBuffer)
-            this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(object.vertices), this.context.STATIC_DRAW)
-            this.context.vertexAttribPointer(this.attribLocations.vertexPosition, 3, this.context.FLOAT, false, 0, 0)
-        
-            this.context.enableVertexAttribArray(this.attribLocations.vertexNormal)
-            this.context.bindBuffer(this.context.ARRAY_BUFFER, this.normalBuffer)
-            this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(object.normals), this.context.STATIC_DRAW)
-            this.context.vertexAttribPointer(this.attribLocations.vertexNormal, 3, this.context.FLOAT, false, 0, 0)
-          }*/
+        this.attrib_locations = {
+            vertexPosition: context.getAttribLocation(this.shader_program, 'a_position'),
+            vertexNormal: context.getAttribLocation(this.shader_program, 'a_normal')
+        };
+
+        this.uniform_locations = {
+            viewTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_viewTransformation'),
+            projectionMatrix: context.getUniformLocation(this.shader_program, 'u_projectionMatrix'),
+            ambientLightColor: context.getUniformLocation(this.shader_program, 'u_ambientLightColor'),
+            diffuseLightPosition: context.getUniformLocation(this.shader_program, 'u_diffuseLightPosition'),
+            diffuseLightColor: context.getUniformLocation(this.shader_program, 'u_diffuseLightColor'),
+            specularLightPosition: context.getUniformLocation(this.shader_program, 'u_specularLightPosition'),
+            modelTransformation: context.getUniformLocation(this.shader_program, 'u_modelTransformation'),
+            material_baseColor: context.getUniformLocation(this.shader_program, 'u_material_baseColor'),
+            material_ambientLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_ambientLightIntensity'),
+            material_diffuseLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_diffuseLightIntensity'),
+            material_specularLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_specularLightIntensity')
+        };
+
+        this.vertex_buffer = context.createBuffer();
+        this.context = context;
+    }
+
+    configureWorldParameters(viewTransformationMatrix: GLM.mat4, projectionMatrix: GLM.mat4, ambientLightColor: GLM.vec3, diffuseLightPosition: GLM.vec3, diffuseLightColor: GLM.vec3, specularLightPosition: GLM.vec3) {
+        this.context?.uniformMatrix4fv(this.uniform_locations.viewTransformationMatrix, false, viewTransformationMatrix);
+        this.context?.uniformMatrix4fv(this.uniform_locations.projectionMatrix, false, projectionMatrix);
+        this.context?.uniform3fv(this.uniform_locations.ambientLightColor, ambientLightColor);
+        this.context?.uniform3fv(this.uniform_locations.diffuseLightPosition, diffuseLightPosition);
+        this.context?.uniform3fv(this.uniform_locations.diffuseLightColor, diffuseLightColor);
+        this.context?.uniform3fv(this.uniform_locations.specularLightPosition, specularLightPosition);
+    }
+
+    getCurrentContext(): WebGLRenderingContext | null {
+        return this.context;
     }
 }
