@@ -72,12 +72,12 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
 
         this.uniform_locations = {
             viewTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_viewTransformation'),
-            projectionMatrix: context.getUniformLocation(this.shader_program, 'u_projectionMatrix'),
+            projectionTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_projectionTransformation'),
             ambientLightColor: context.getUniformLocation(this.shader_program, 'u_ambientLightColor'),
             diffuseLightPosition: context.getUniformLocation(this.shader_program, 'u_diffuseLightPosition'),
             diffuseLightColor: context.getUniformLocation(this.shader_program, 'u_diffuseLightColor'),
             specularLightPosition: context.getUniformLocation(this.shader_program, 'u_specularLightPosition'),
-            modelTransformation: context.getUniformLocation(this.shader_program, 'u_modelTransformation'),
+            modelTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_modelTransformation'),
             material_baseColor: context.getUniformLocation(this.shader_program, 'u_material_baseColor'),
             material_ambientLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_ambientLightIntensity'),
             material_diffuseLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_diffuseLightIntensity'),
@@ -88,9 +88,16 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
         this.context = context;
     }
 
+    use(): void {
+        if (!this.context) throw new Error('WebGL context not available.');
+        if (!this.shader_program) throw new Error('Shader program not initialized.');
+
+        this.context.useProgram(this.shader_program);
+    }
+
     configureWorldParameters(viewTransformationMatrix: GLM.mat4, projectionMatrix: GLM.mat4, ambientLightColor: GLM.vec3, diffuseLightPosition: GLM.vec3, diffuseLightColor: GLM.vec3, specularLightPosition: GLM.vec3) {
         this.context?.uniformMatrix4fv(this.uniform_locations.viewTransformationMatrix, false, viewTransformationMatrix);
-        this.context?.uniformMatrix4fv(this.uniform_locations.projectionMatrix, false, projectionMatrix);
+        this.context?.uniformMatrix4fv(this.uniform_locations.projectionTransformationMatrix, false, projectionMatrix);
         this.context?.uniform3fv(this.uniform_locations.ambientLightColor, ambientLightColor);
         this.context?.uniform3fv(this.uniform_locations.diffuseLightPosition, diffuseLightPosition);
         this.context?.uniform3fv(this.uniform_locations.diffuseLightColor, diffuseLightColor);

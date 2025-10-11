@@ -38,9 +38,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
 
     async initialize(argument: HTMLCanvasElement): Promise<void> {
         await this.program.initialize(argument);
-        
-        const context = getWebGlContext(argument);
-        context.useProgram(this.program);
+        this.program.use();
     }
 
     visitSceneComponent(scene_component: ISceneGraphComponent): void {
@@ -93,20 +91,39 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
 
     configureWorldParameters(backgroundColor: GLM.vec3): void {
         let context = this.program.getCurrentContext();
-        if(!context) throw new Error('WebGL context not available.');
+        if (!context) throw new Error('WebGL context not available.');
 
-        context.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
-        context.enable(context.DEPTH_TEST);
-        context.depthFunc(context.LEQUAL);
-        context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
+        if (!this.camera) throw new Error('Camera not set.');
+
         context.viewport(0, 0, context.canvas.width, context.canvas.height);
+        context.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
+        context.enable(context.BLEND | context.DEPTH_TEST | context.CULL_FACE);
+        context.cullFace(context.BACK);
+        context.depthFunc(context.LEQUAL);
+        context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA);
+        context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
+
+        let view_transformation = GLM.mat4.identity(GLM.mat4.create());
+        GLM.mat4.rotateZ(view_transformation, view_transformation, this.camera.rotation_angles[2] * Math.PI / 180);
+        GLM.mat4.rotateY(view_transformation, view_transformation, this.camera.rotation_angles[1] * Math.PI / 180);
+        GLM.mat4.rotateX(view_transformation, view_transformation, this.camera.rotation_angles[0] * Math.PI / 180);
+        GLM.mat4.translate(view_transformation, view_transformation, this.camera.position);
+
+        this.program.configureWorldParameters(
+            view_transformation,
+            this.camera.projection.getProjectionMatrix(),
+            this.ambient_light_color,
+            this.diffuse_light_position,
+            this.diffuse_light_color,
+            this.specular_light_position
+        );
     }
 
     flush(): void {
         if (!this.isInitialized) throw new Error('Renderer not initialized.');
         if (this.camera == null) throw new Error('Camera not set.');
 
-// buffers and draw
+
 
         this.reset();
     }
