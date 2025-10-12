@@ -28,6 +28,12 @@ export default class App extends React.Component {
         this.camera.projection = this.ortho_projection;
         this.game.camera = this.camera;
         this.game.renderer = this.renderer;
+        this.game.lights_configuration = {
+            ambient_light_color: GLM.vec3.fromValues(0.5, 0.5, 0.4),
+            diffuse_light_position: GLM.vec3.fromValues(5, 5, -10),
+            diffuse_light_color: GLM.vec3.fromValues(0.7, 0.7, 0.6),
+            specular_light_position: GLM.vec3.fromValues(-5, 5, -10)
+        };
     }
 
     // Events
@@ -65,6 +71,8 @@ export default class App extends React.Component {
 
         e.preventDefault();
         e.stopPropagation();
+
+        this.game.requestRenderingProcess(window);
     }
 
     private onWheel(e: WheelEvent): void {
@@ -74,6 +82,7 @@ export default class App extends React.Component {
 
     private onResize(): void {
         this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement).clientWidth / (this.main_element.current as HTMLDivElement).clientHeight;
+        this.game.requestRenderingProcess(window);
     }
 
     private onTouchStart(e: TouchEvent): void {
@@ -92,6 +101,8 @@ export default class App extends React.Component {
             e.preventDefault();
             e.stopPropagation();
         }
+
+        this.game.requestRenderingProcess(window);
     }
 
     private onTouchMove(e: TouchEvent): void {
@@ -99,6 +110,11 @@ export default class App extends React.Component {
             this.pointers = [];
             return;
         }
+
+        this.game.requestRenderingProcess(window);
+
+        e.preventDefault();
+        e.stopPropagation();
     }
 
     private onTouchStop(e: Event): void {
@@ -137,6 +153,8 @@ export default class App extends React.Component {
             this.camera.projection = this.ortho_projection;
             this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
         }
+
+        this.game.requestRenderingProcess(window);
     }
 
     private resetCameraSettings(e: React.UIEvent): void {
@@ -146,13 +164,16 @@ export default class App extends React.Component {
         this.camera = new Camera();
         this.camera.position[2] = -5;
         this.camera.projection = this.ortho_projection;
+        this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
         this.game.camera = this.camera;
+
+        this.game.requestRenderingProcess(window);
     }
 
     // React lifecycle
 
-    componentDidMount() {
-        this.game.start();
+    async componentDidMount(): Promise<void> {
+        await this.game.start();
     }
 
     componentWillUnmount(): void {
