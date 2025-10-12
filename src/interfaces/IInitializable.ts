@@ -1,5 +1,5 @@
-export interface IInitializable<TArgument> {
+export interface IInitializable {
     get isInitialized(): boolean;
     
-    initialize(argument: TArgument): Promise<void>;
+    initialize(canvas: HTMLCanvasElement): Promise<void>;
 }

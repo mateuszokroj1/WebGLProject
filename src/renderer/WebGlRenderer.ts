@@ -6,9 +6,8 @@ import Vertices from "../models/Vertices";
 import { ISceneGraphComponent } from "../interfaces/ISceneGraph";
 import Camera from "../models/Camera";
 import WebGlShaderProgram from "./WebGlShaderProgram";
-import { getWebGlContext } from "../tools/Functions";
 
-export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanvasElement> {
+export default class WebGlRenderer implements IRenderer, IInitializable {
     private program: WebGlShaderProgram = new WebGlShaderProgram;
     private camera: Camera | null = null;
     private ambient_light_color: GLM.vec3 = GLM.vec3.fromValues(1.0, 1.0, 1.0);
@@ -18,7 +17,6 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
     private material: Material = Material.solidColorRed();
     private model_transformation: GLM.mat4 = GLM.mat4.identity(GLM.mat4.create())
     private vertices: Float32Array = new Float32Array(0)
-    private normals: Float32Array = new Float32Array(0)
 
     get isInitialized(): boolean {
         return this.program.isInitialized;
@@ -33,7 +31,6 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
         this.material = Material.solidColorRed();
         this.model_transformation = GLM.mat4.identity(GLM.mat4.create())
         this.vertices = new Float32Array(0)
-        this.normals = new Float32Array(0)
     }
 
     async initialize(argument: HTMLCanvasElement): Promise<void> {
@@ -82,9 +79,8 @@ export default class WebGlRenderer implements IRenderer, IInitializable<HTMLCanv
         return this;
     }
 
-    drawTriangles(trianglesData: Vertices): IRenderer {
-        this.vertices = new Float32Array(trianglesData.vertices);
-        this.normals = new Float32Array(trianglesData.normals);
+    drawTriangles(trianglesData: Float32Array): IRenderer {
+        this.vertices = trianglesData;
 
         return this;
     }

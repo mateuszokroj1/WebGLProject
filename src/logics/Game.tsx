@@ -1,10 +1,13 @@
+import * as GLM from "gl-matrix";
 import React from 'react';
 import IGame from '../interfaces/IGame';
 import IRenderer from '../interfaces/IRenderer';
 import Camera from '../models/Camera';
-import { IInitializable } from '../interfaces/IInitializable';
 import { ISceneGraphComponent } from '../interfaces/ISceneGraph';
 import { EmptyScene } from './SceneGraph';
+import { canInitialize } from '../tools/Functions';
+import ILightsConfiguration from "../interfaces/ILightsConfiguration";
+import Mutex from "./Mutex";
 
 export default class Game extends React.Component implements IGame {
     constructor() {
@@ -17,11 +20,12 @@ export default class Game extends React.Component implements IGame {
     }
 
     private _isStarted: boolean = false;
+    private game_mutex: Mutex = new Mutex();
     private frame_element: React.RefObject<HTMLCanvasElement | null>;
     private _renderer: IRenderer | null = null;
     private _camera: Camera = new Camera();
-    private rendering_timer_handle: number | null = null;
     public scene_graph: ISceneGraphComponent = new EmptyScene;
+    public lights_configuration: ILightsConfiguration | null = null;
 
     get isStarted(): boolean {
         return this._isStarted;
@@ -54,26 +58,39 @@ export default class Game extends React.Component implements IGame {
             throw new Error("Rendering not configured.");
         }
 
-        console.log("Starting rendering engine...");
-        const type_checker = (value: any): value is IInitializable<HTMLCanvasElement> => true;
+        try {
+            await this.game_mutex.lock();
+            if (this.isStarted) {
+                console.warn("Game is already started.");
+                return;
+            }
 
-        if (type_checker(this.renderer) && !this.renderer.isInitialized)
-            await this.renderer.initialize(this.frame_element.current);
+            console.log("Starting rendering engine...");
 
-        console.log("Loading scene...");
-        if (type_checker(this.scene_graph) && !this.scene_graph.isInitialized)
-            await this.scene_graph.initialize(this.frame_element.current);
+            if (canInitialize(this.renderer))
+                await this.renderer.initialize(this.frame_element.current);
 
-        this.rendering_timer_handle = window.setInterval(() => this.renderFrame(), 1000 / 60);
-        this._isStarted = true;
+            console.log("Loading scene...");
+
+            if (canInitialize(this.scene_graph))
+                await this.scene_graph.initialize(this.frame_element.current);
+
+            this._isStarted = true;
+            console.log("Game engine loaded successfully.");
+        } catch (e) {
+            this._isStarted = false;
+            throw e;
+        } finally {
+            this.game_mutex.release();
+        }
     }
 
     stop(): void {
-        if (this.rendering_timer_handle != null) {
-            window.clearInterval(this.rendering_timer_handle);
-            this.rendering_timer_handle = null;
-        }
-        this._isStarted = false;
+        this.game_mutex.lock().then(() => {
+            this._isStarted = false;
+        }).finally(() => {
+            this.game_mutex.release();
+        });
     }
 
     render() {
@@ -81,22 +98,32 @@ export default class Game extends React.Component implements IGame {
     }
 
     private renderFrame() {
-        if (this.renderer == null || this.frame_element.current == null || this.camera == null || this.scene_graph == null) {
+        if (this.renderer == null || this.frame_element.current == null || this.camera == null || this.scene_graph == null || this.lights_configuration == null) {
             this.stop();
             console.error("Rendering not configured.");
             return;
         }
 
-        try {
-            this.renderer.configure(this.frame_element.current);
-            this.renderer.useCamera(this.camera);
-            //TODO lighting
+        //   try {
+        this.renderer.configureWorldParameters(GLM.vec3.fromValues(0.2, 0.2, 0.2));
+        this.renderer.useCamera(this.camera);
+        this.renderer.setAmbientLightColor(this.lights_configuration.ambient_light_color);
+        this.renderer.setDiffuseLight(this.lights_configuration.diffuse_light_position, this.lights_configuration.diffuse_light_color);
+        this.renderer.setSpecularLight(this.lights_configuration.specular_light_position);
 
-            this.renderer.visitSceneComponent(this.scene_graph);
-        } catch (e) {
-            console.error(e);
-            this.stop();
-            return;
-        }
+        this.renderer.visitSceneComponent(this.scene_graph);
+        /*     } catch (e) {
+                 console.error(e);
+                 this.stop();
+                 return;
+             }*/
+    }
+
+    public requestRenderingProcess(window: Window): void {
+        if (!this.isStarted || this.frame_element.current == null || this.renderer == null) return;
+
+        window.requestAnimationFrame(() => {
+            this.renderFrame();
+        });
     }
 }

@@ -36,15 +36,15 @@ abstract class SceneGraphGroupBase extends SceneGraphComponentBase implements IS
             if (child.id === other.id)
                 return true;
 
-            if (Tools.isInType<ISceneGraphGroup>(child) && child.contains(other))
-                return true;
+            if (child instanceof SceneGraphGroupBase)
+                return child.contains(other);
         }
 
         return false;
     }
 }
 
-export class SceneGraphGroup extends SceneGraphGroupBase implements IInitializable<HTMLCanvasElement> {
+export class SceneGraphGroup extends SceneGraphGroupBase implements IInitializable {
     public groupTransformation: Transformation = new Transformation();
 
     getModelTransformation(): GLM.mat4 {
@@ -53,28 +53,26 @@ export class SceneGraphGroup extends SceneGraphGroupBase implements IInitializab
 
     get isInitialized(): boolean {
         for (const child of this.children) {
-            if (Tools.isInType<IInitializable<any>>(child) && !child.isInitialized)
-                return false;
+            return !Tools.canInitialize(child);
         }
 
         return true;
     }
 
-    async initialize(argument: HTMLCanvasElement): Promise<void> {
+    async initialize(canvas: HTMLCanvasElement): Promise<void> {
         for (let child of this.children) {
-            if (Tools.isInType<IInitializable<HTMLCanvasElement>>(child))
-                await child.initialize(argument);
+            if (Tools.canInitialize(child))
+                await child.initialize(canvas);
         }
     }
 
     acceptRenderer(visitor: IRenderer): void {
-        for(const child of this.children)
+        for (const child of this.children)
             child.acceptRenderer(visitor);
     }
 }
 
-export class EmptyScene extends SceneGraphComponentBase
-{
+export class EmptyScene extends SceneGraphComponentBase {
     getModelTransformation(): GLM.mat4 {
         return GLM.mat4.identity(GLM.mat4.create());
     }
