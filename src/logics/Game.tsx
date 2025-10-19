@@ -7,7 +7,7 @@ import { ISceneGraphComponent } from '../interfaces/ISceneGraph';
 import { EmptyScene } from './SceneGraph';
 import { canInitialize } from '../tools/Functions';
 import ILightsConfiguration from "../interfaces/ILightsConfiguration";
-import Mutex from "./Mutex";
+import SharedMutex from "./SharedMutex";
 
 export default class Game extends React.Component implements IGame {
     constructor() {
@@ -20,12 +20,13 @@ export default class Game extends React.Component implements IGame {
     }
 
     private _isStarted: boolean = false;
-    private game_mutex: Mutex = new Mutex();
+    private _is_starting: boolean = false;
     private frame_element: React.RefObject<HTMLCanvasElement | null>;
     private _renderer: IRenderer | null = null;
     private _camera: Camera = new Camera();
     public scene_graph: ISceneGraphComponent = new EmptyScene;
     public lights_configuration: ILightsConfiguration | null = null;
+    private mutex = new SharedMutex();
 
     get isStarted(): boolean {
         return this._isStarted;
@@ -36,7 +37,7 @@ export default class Game extends React.Component implements IGame {
     }
 
     set camera(value: Camera) {
-        if (this.isStarted)
+        if (this.isStarted || this._is_starting)
             throw new Error("Cannot change camera while game is running. First stop the game.");
 
         this._camera = value;
@@ -47,23 +48,30 @@ export default class Game extends React.Component implements IGame {
     }
 
     set renderer(renderer: IRenderer) {
-        if (this.isStarted)
+        if (this.isStarted || this._is_starting)
             throw new Error("Cannot change renderer while game is running. First stop the game.");
 
         this._renderer = renderer;
     }
 
     async start(): Promise<void> {
+await this.mutex.lock();
+
         if (this.renderer == null || this.frame_element.current == null || this.camera == null || this.scene_graph == null) {
             throw new Error("Rendering not configured.");
         }
 
         try {
-            await this.game_mutex.lock();
             if (this.isStarted) {
                 console.warn("Game is already started.");
                 return;
             }
+
+            if (this._is_starting) {
+                console.warn("Game is already starting.");
+                return;
+            }
+            this._is_starting = true;
 
             console.log("Starting rendering engine...");
 
@@ -81,16 +89,16 @@ export default class Game extends React.Component implements IGame {
             this._isStarted = false;
             throw e;
         } finally {
-            this.game_mutex.release();
+            this._is_starting = false;
+            this.mutex.release();
         }
     }
 
     stop(): void {
-        this.game_mutex.lock().then(() => {
-            this._isStarted = false;
-        }).finally(() => {
-            this.game_mutex.release();
-        });
+        if (this._is_starting)
+            console.warn("Cannot stop the game while it is starting.");
+
+        this._isStarted = false;
     }
 
     render() {
@@ -105,8 +113,8 @@ export default class Game extends React.Component implements IGame {
         }
 
         //   try {
-        this.renderer.configureWorldParameters(GLM.vec3.fromValues(0.2, 0.2, 0.2));
         this.renderer.useCamera(this.camera);
+        this.renderer.configureWorldParameters(GLM.vec3.fromValues(0.15, 0.15, 0.15));
         this.renderer.setAmbientLightColor(this.lights_configuration.ambient_light_color);
         this.renderer.setDiffuseLight(this.lights_configuration.diffuse_light_position, this.lights_configuration.diffuse_light_color);
         this.renderer.setSpecularLight(this.lights_configuration.specular_light_position);

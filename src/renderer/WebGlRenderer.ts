@@ -2,7 +2,6 @@ import * as GLM from "gl-matrix";
 import { IInitializable } from "../interfaces/IInitializable";
 import IRenderer from "../interfaces/IRenderer";
 import Material from "../logics/Material";
-import Vertices from "../models/Vertices";
 import { ISceneGraphComponent } from "../interfaces/ISceneGraph";
 import Camera from "../models/Camera";
 import WebGlShaderProgram from "./WebGlShaderProgram";
@@ -93,7 +92,9 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
 
         context.viewport(0, 0, context.canvas.width, context.canvas.height);
         context.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
-        context.enable(context.BLEND | context.DEPTH_TEST | context.CULL_FACE);
+        context.enable(context.DEPTH_TEST);
+        context.enable(context.CULL_FACE);
+        context.enable(context.BLEND);
         context.cullFace(context.BACK);
         context.depthFunc(context.LEQUAL);
         context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA);

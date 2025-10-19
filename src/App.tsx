@@ -161,11 +161,10 @@ export default class App extends React.Component {
         e.preventDefault();
         e.stopPropagation();
 
-        this.camera = new Camera();
-        this.camera.position[2] = -5;
+        this.camera.position = GLM.vec3.fromValues(0, 0, -5);
+        this.camera.rotation_angles = GLM.vec3.fromValues(0, 0, 0);
         this.camera.projection = this.ortho_projection;
         this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
-        this.game.camera = this.camera;
 
         this.game.requestRenderingProcess(window);
     }
@@ -174,6 +173,7 @@ export default class App extends React.Component {
 
     async componentDidMount(): Promise<void> {
         await this.game.start();
+        this.game.requestRenderingProcess(window);
     }
 
     componentWillUnmount(): void {
