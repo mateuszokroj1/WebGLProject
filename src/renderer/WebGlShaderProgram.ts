@@ -1,6 +1,7 @@
 import * as GLM from 'gl-matrix';
 import { IInitializable } from "../interfaces/IInitializable";
 import { getWebGlContext } from "../tools/Functions";
+
 export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElement> {
 
     get isInitialized(): boolean {
@@ -8,8 +9,8 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
     }
 
     private shader_program: WebGLProgram | null = null;
-    public attrib_locations: any = {};
     public uniform_locations: any = {};
+    public attribute_locations: any = {};
     public vertex_buffer: WebGLBuffer | null = null;
     private context: WebGLRenderingContext | null = null;
 
@@ -65,11 +66,6 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
         context.deleteShader(vertex_shader);
         context.deleteShader(fragment_shader);
 
-        this.attrib_locations = {
-            vertexPosition: context.getAttribLocation(this.shader_program, 'a_position'),
-            vertexNormal: context.getAttribLocation(this.shader_program, 'a_normal')
-        };
-
         this.uniform_locations = {
             viewTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_viewTransformation'),
             projectionTransformationMatrix: context.getUniformLocation(this.shader_program, 'u_projectionTransformation'),
@@ -84,7 +80,15 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
             material_specularLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_specularLightIntensity')
         };
 
+        this.attribute_locations = {
+            position: context.getAttribLocation(this.shader_program, 'a_position'),
+            normal: context.getAttribLocation(this.shader_program, 'a_normal')
+        };
+
         this.vertex_buffer = context.createBuffer();
+        context.bindBuffer(context.ARRAY_BUFFER, this.vertex_buffer);
+        context.vertexAttribPointer(0, 3, context.FLOAT, false, 2 * 3 * 4, 0);
+
         this.context = context;
     }
 

@@ -21,6 +21,7 @@ export default class Game extends React.Component implements IGame {
 
     private _isStarted: boolean = false;
     private _is_starting: boolean = false;
+    public frame_size: GLM.vec2 = GLM.vec2.fromValues(800, 600);
     private frame_element: React.RefObject<HTMLCanvasElement | null>;
     private _renderer: IRenderer | null = null;
     private _camera: Camera = new Camera();
@@ -111,6 +112,9 @@ await this.mutex.lock();
             console.error("Rendering not configured.");
             return;
         }
+
+        this.frame_element.current.width = this.frame_size[0];
+        this.frame_element.current.height = this.frame_size[1];
 
         //   try {
         this.renderer.useCamera(this.camera);

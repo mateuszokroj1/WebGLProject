@@ -1,10 +1,11 @@
+import Cube from "./Cube";
 import { SceneGraphGroup } from "./logics/SceneGraph";
-import STLObject from "./logics/STLObject";
+import TestTriangle from "./TestTriangle";
 
 export default class MyScene extends SceneGraphGroup {
     constructor() {
         super();
 
-        this.addChild(new STLObject("Cube", "/solids/cube.STL"));
+        this.addChild(new Cube);
     }
 }

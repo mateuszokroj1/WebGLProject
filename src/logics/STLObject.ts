@@ -5,6 +5,7 @@ import { ISceneGraphComponent } from "../interfaces/ISceneGraph";
 import { Transformation } from "../models/Transformation";
 import Material from "./Material";
 import { isBinaryFile } from "arraybuffer-isbinary";
+import Box from "../models/Box";
 
 export default class STLObject extends VisibleObjectBase {
     constructor(name: string, file_pathOrData: string | Float32Array) {
@@ -20,6 +21,7 @@ export default class STLObject extends VisibleObjectBase {
     private data: Float32Array | null = null;
     private file_path: string = "";
     public parent_group: ISceneGraphComponent | null = null;
+    private _bounding_box: Box = new Box;
     public material: Material | null = null;
     public comment: string = "";
 
@@ -59,27 +61,36 @@ export default class STLObject extends VisibleObjectBase {
             if (content.length == 0)
                 return;
 
-            const triangle_reg = /facet\s+normal\s+(?<normal_x>\-?\d+([\,\.]\d+)?)\s+(?<normal_y>\-?\d+([\,\.]\d+)?)\s+(?<normal_z>\-?\d+([\,\.]\d+)?)\s+outer\s+loop\s+(vertex\s*(?<v_x>\-?\d+([\,\.]\d+)?)\s+(?<v_y>\-?\d+([\,\.]\d+)?)\s+(?<v_z>\-?\d+([\,\.]\d+)?)\s+){3}endloop\s+endfacet\s+/gi
+            const triangle_reg = /\s*facet\s+normal\s+(?<normal_x>\-?\d+([\.\,]\d+)?)\s+(?<normal_y>\-?\d+([\.\,]\d+)?)\s+(?<normal_z>\-?\d+([\.\,]\d+)?)\s+outer\s+loop\s+((vertex\s+((\-?\d+([\.\,]\d+)?)\s+){3})){3}\s*endloop\s+endfacet/ig;
 
+            const vertex_reg = /vertex\s+(?<x>\-?\d+([\,\.]\d+)?)\s+(?<y>\-?\d+([\,\.]\d+)?)\s+(?<z>\-?\d+([\,\.]\d+)?)/gi;
             let single_triangle = triangle_reg.exec(text);
             while (single_triangle != null) {
-                /*single_triangle[0]
-                const normal_x = parseFloat(match1.groups['x'])
-                const normal_y = parseFloat(match1.groups['y'])
-                const normal_z = parseFloat(match1.groups['z'])
-        
-                let vertex_match = vertex_reg.exec(single_triangle[0])
-                while (vertex_match != null) {
-                  const v_x = parseFloat(vertex_match.groups['x'])
-                  const v_y = parseFloat(vertex_match.groups['y'])
-                  const v_z = parseFloat(vertex_match.groups['z'])
-        
-                  data.push(v_x, v_y, v_z);
-                  data.push(normal_x, normal_y, normal_z);
-                  vertex_match = vertex_reg.exec(single_triangle[0])
+                if (single_triangle.groups == undefined) break;
+
+                const normal_x = parseFloat(single_triangle.groups.normal_x);
+                const normal_y = parseFloat(single_triangle.groups.normal_y);
+                const normal_z = parseFloat(single_triangle.groups.normal_z);
+
+                let single_vertex = vertex_reg.exec(single_triangle[0]);
+                while (single_vertex != null) {
+                    if (single_vertex.groups == undefined) break;
+
+                    const vertex_x = parseFloat(single_vertex.groups.x);
+                    const vertex_y = parseFloat(single_vertex.groups.y);
+                    const vertex_z = parseFloat(single_vertex.groups.z);
+                    data.push(vertex_x);
+                    data.push(vertex_y);
+                    data.push(vertex_z);
+                    data.push(normal_x);
+                    data.push(normal_y);
+                    data.push(normal_z);
+
+                    this._bounding_box.addPoint(GLM.vec3.fromValues(vertex_x, vertex_y, vertex_z));
+                    single_vertex = vertex_reg.exec(single_triangle[0]);
                 }
-        
-                single_triangle = triangle_reg.exec(text)*/
+
+                single_triangle = triangle_reg.exec(text);
             }
         }
         else {
@@ -106,6 +117,10 @@ export default class STLObject extends VisibleObjectBase {
                 data.push(...normal);
                 data.push(...v3);
                 data.push(...normal);
+
+                this._bounding_box.addPoint(GLM.vec3.fromValues(...v1));
+                this._bounding_box.addPoint(GLM.vec3.fromValues(...v2));
+                this._bounding_box.addPoint(GLM.vec3.fromValues(...v3));
             }
         }
 
@@ -121,10 +136,24 @@ export default class STLObject extends VisibleObjectBase {
         return object_trafo;
     }
 
+    getBoundingBox(): Box {
+        return this._bounding_box;
+    }
+
     acceptRenderer(renderer: IRenderer): void {
         if (this.material != null)
             renderer.useMaterial(this.material);
+/*
+        const final_model_transformation = GLM.mat4.identity(GLM.mat4.create());
+        const gravity_center = this._bounding_box.center;
+        const radius1: number = GLM.vec3.distance(this._bounding_box.min, gravity_center);
+        const radius2: number = GLM.vec3.distance(this._bounding_box.max, gravity_center);
+        const scaler = 1 / Math.max(radius1, radius2);
 
+        GLM.mat4.translate(final_model_transformation, final_model_transformation, GLM.vec3.fromValues(-gravity_center[0], -gravity_center[1], -gravity_center[2]));
+        GLM.mat4.scale(final_model_transformation, final_model_transformation, GLM.vec3.fromValues(scaler, scaler, scaler));
+
+        GLM.mat4.multiply(final_model_transformation, final_model_transformation, this.getModelTransformation());*/
         renderer.useModelTransformation(this.getModelTransformation());
 
         if (this.data != null)

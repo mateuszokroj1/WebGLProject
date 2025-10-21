@@ -5,6 +5,7 @@ import './assets/styles/App.scss';
 import Camera from './models/Camera';
 import { OrthoProjection, PerspectiveProjection } from './models/CameraProjection';
 import WebGlRenderer from './renderer/WebGlRenderer';
+import MyScene from './MyScene';
 
 enum ProjectionMode {
     ORTHOGRAPHIC,
@@ -16,16 +17,16 @@ export default class App extends React.Component {
     private main_element: React.RefObject<HTMLDivElement | null> = React.createRef();
     private renderer = new WebGlRenderer();
     private camera = new Camera();
-    private projection_mode: ProjectionMode = ProjectionMode.ORTHOGRAPHIC;
+    private projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE;
     private ortho_projection = new OrthoProjection();
     private perspective_projection = new PerspectiveProjection();
 
     constructor(props: any) {
         super(props);
 
-        this.camera.position[2] = -5;
+        this.resetCameraImpl();
 
-        this.camera.projection = this.ortho_projection;
+        this.camera.projection = this.perspective_projection;
         this.game.camera = this.camera;
         this.game.renderer = this.renderer;
         this.game.lights_configuration = {
@@ -34,6 +35,8 @@ export default class App extends React.Component {
             diffuse_light_color: GLM.vec3.fromValues(0.7, 0.7, 0.6),
             specular_light_position: GLM.vec3.fromValues(-5, 5, -10)
         };
+
+        this.game.scene_graph = new MyScene;
     }
 
     // Events
@@ -81,6 +84,8 @@ export default class App extends React.Component {
     }
 
     private onResize(): void {
+        this.game.frame_size = GLM.vec2.fromValues((this.main_element.current as HTMLDivElement).clientWidth, (this.main_element.current as HTMLDivElement).clientHeight);
+
         this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement).clientWidth / (this.main_element.current as HTMLDivElement).clientHeight;
         this.game.requestRenderingProcess(window);
     }
@@ -132,11 +137,11 @@ export default class App extends React.Component {
             this.main_element.current.addEventListener('mouseup', (e) => { this.onMouseUp(e) });
             this.main_element.current.addEventListener('mousemove', (e) => { this.onMouseMove(e) });
             this.main_element.current.addEventListener('wheel', (e) => { this.onWheel(e) });
-            this.main_element.current.addEventListener('resize', () => { this.onResize() });
             this.main_element.current.addEventListener('touchstart', (e) => { this.onTouchStart(e) });
             this.main_element.current.addEventListener('touchmove', (e) => { this.onTouchMove(e) });
             this.main_element.current.addEventListener('touchcancel', (e) => { this.onTouchStop(e) });
             this.main_element.current.addEventListener('touchend', (e) => { this.onTouchStop(e) });
+            window.addEventListener('resize', () => { this.onResize() });
 
             this.onResize();
         }
@@ -157,14 +162,19 @@ export default class App extends React.Component {
         this.game.requestRenderingProcess(window);
     }
 
+    private resetCameraImpl(): void {
+        this.camera.position = GLM.vec3.fromValues(0, 0, -10);
+        this.camera.rotation_angles = GLM.vec3.fromValues(0, 0, 0);
+        this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement)?.clientWidth / (this.main_element.current as HTMLDivElement)?.clientHeight || 1;
+    }
+
     private resetCameraSettings(e: React.UIEvent): void {
         e.preventDefault();
         e.stopPropagation();
 
-        this.camera.position = GLM.vec3.fromValues(0, 0, -5);
-        this.camera.rotation_angles = GLM.vec3.fromValues(0, 0, 0);
-        this.camera.projection = this.ortho_projection;
-        this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
+        this.resetCameraImpl();
+        this.camera.projection = this.perspective_projection;
+        this.projection_mode = ProjectionMode.PERSPECTIVE;
 
         this.game.requestRenderingProcess(window);
     }

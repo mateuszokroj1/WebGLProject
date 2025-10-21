@@ -9,10 +9,10 @@ export abstract class CameraProjectionBase implements ICameraProjection {
 }
 
 export class OrthoProjection extends CameraProjectionBase {
-    public left: number = -1;
-    public right: number = 1;
-    public bottom: number = -1;
-    public top: number = 1;
+    public left: number = -300;
+    public right: number = 300;
+    public bottom: number = -30;
+    public top: number = 30;
 
     getProjectionMatrix(): GLM.mat4 {
         let matrix = GLM.mat4.create();
