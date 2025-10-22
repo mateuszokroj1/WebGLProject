@@ -77,7 +77,8 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
             material_baseColor: context.getUniformLocation(this.shader_program, 'u_material_baseColor'),
             material_ambientLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_ambientLightIntensity'),
             material_diffuseLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_diffuseLightIntensity'),
-            material_specularLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_specularLightIntensity')
+            material_specularLightIntensity: context.getUniformLocation(this.shader_program, 'u_material_specularLightIntensity'),
+            material_opacity: context.getUniformLocation(this.shader_program, 'u_material_opacity')
         };
 
         this.attribute_locations = {

@@ -5,6 +5,7 @@ export default class Material {
     public specular_light_intensity: number = 0.0;
     public ambient_light_intensity: number = 0.0;
     public diffuse_light_intensity: number = 0.0;
+    public opacity: number = 1.0;
 
     public static solidColorRed(): Material {
         let material = new Material();

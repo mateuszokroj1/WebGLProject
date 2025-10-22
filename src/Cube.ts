@@ -13,5 +13,6 @@ export default class Cube extends STLObject {
         this.material.specular_light_intensity = 0;
         this.material.ambient_light_intensity = 0.8;
         this.material.base_color = GLM.vec3.fromValues(1, 0.5, 0);
+        this.material.opacity = 0.7;
     }
 }

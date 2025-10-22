@@ -90,22 +90,22 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
 
         if (!this.camera) throw new Error('Camera not set.');
 
-       context.viewport(0, 0, context.drawingBufferWidth, context.drawingBufferHeight);
+        context.viewport(0, 0, context.drawingBufferWidth, context.drawingBufferHeight);
 
         context.enable(context.DEPTH_TEST);
-        //context.enable(context.CULL_FACE);
+        context.enable(context.CULL_FACE);
         context.enable(context.BLEND);
-        //context.cullFace(context.BACK);
+        context.cullFace(context.BACK);
         context.depthFunc(context.LEQUAL);
         context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA);
         context.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0);
         context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
 
         let view_transformation = GLM.mat4.identity(GLM.mat4.create());
+        GLM.mat4.translate(view_transformation, view_transformation, this.camera.position);
         GLM.mat4.rotateZ(view_transformation, view_transformation, this.camera.rotation_angles[2] * Math.PI / 180);
         GLM.mat4.rotateY(view_transformation, view_transformation, this.camera.rotation_angles[1] * Math.PI / 180);
         GLM.mat4.rotateX(view_transformation, view_transformation, this.camera.rotation_angles[0] * Math.PI / 180);
-        GLM.mat4.translate(view_transformation, view_transformation, this.camera.position);
 
         this.program.configureWorldParameters(
             view_transformation,
@@ -131,6 +131,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
         context.uniform1f(this.program.uniform_locations.material_ambientLightIntensity, this.material.ambient_light_intensity);
         context.uniform1f(this.program.uniform_locations.material_diffuseLightIntensity, this.material.diffuse_light_intensity);
         context.uniform1f(this.program.uniform_locations.material_specularLightIntensity, this.material.specular_light_intensity);
+        context.uniform1f(this.program.uniform_locations.material_opacity, this.material.opacity);
 
         context.drawArrays(context.TRIANGLES, 0, this.vertices.length / 6);
         context.disableVertexAttribArray(0);

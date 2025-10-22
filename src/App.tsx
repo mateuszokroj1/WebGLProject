@@ -6,10 +6,17 @@ import Camera from './models/Camera';
 import { OrthoProjection, PerspectiveProjection } from './models/CameraProjection';
 import WebGlRenderer from './renderer/WebGlRenderer';
 import MyScene from './MyScene';
+import { fmod } from './tools/Functions';
 
 enum ProjectionMode {
     ORTHOGRAPHIC,
     PERSPECTIVE
+}
+
+enum ManipulationMode {
+    NONE = 0,
+    ROTATE,
+    ZOOM
 }
 
 export default class App extends React.Component {
@@ -30,7 +37,7 @@ export default class App extends React.Component {
         this.game.camera = this.camera;
         this.game.renderer = this.renderer;
         this.game.lights_configuration = {
-            ambient_light_color: GLM.vec3.fromValues(0.5, 0.5, 0.4),
+            ambient_light_color: GLM.vec3.fromValues(0,0,1),
             diffuse_light_position: GLM.vec3.fromValues(5, 5, -10),
             diffuse_light_color: GLM.vec3.fromValues(0.7, 0.7, 0.6),
             specular_light_position: GLM.vec3.fromValues(-5, 5, -10)
@@ -40,47 +47,63 @@ export default class App extends React.Component {
     }
 
     // Events
-
-    private pointers: GLM.vec2[] = []
+    private manipulation_mode: ManipulationMode = ManipulationMode.NONE;
 
     private onMouseDown(e: MouseEvent): void {
-        if (this.pointers.length > 0 || e.button != 0)
+        if (this.manipulation_mode == ManipulationMode.ROTATE || e.button != 0)
             return;
 
         e.preventDefault();
         e.stopPropagation();
-
-        this.pointers = [GLM.vec2.fromValues(e.clientX, e.clientY)];
+        this.manipulation_mode = ManipulationMode.ROTATE;
     }
 
     private onMouseUp(e: MouseEvent): void {
-        if (this.pointers.length != 1)
+        if (this.manipulation_mode != ManipulationMode.ROTATE)
             return;
 
         e.preventDefault();
         e.stopPropagation();
 
-        this.pointers = [];
+        this.manipulation_mode = ManipulationMode.NONE;
     }
 
     private onMouseMove(e: MouseEvent): void {
-        if (this.pointers.length != 1)
+        if (this.manipulation_mode != ManipulationMode.ROTATE)
             return;
 
         if (e.buttons != 1) {
-            this.pointers = [];
+            this.manipulation_mode = ManipulationMode.NONE;
             return;
         }
 
         e.preventDefault();
         e.stopPropagation();
 
+        const manipulation_scale = e.shiftKey ? 0.05 : 0.5;
+
+        if (e.ctrlKey) {
+            this.camera.rotation_angles[2] += e.movementY * manipulation_scale;
+            this.camera.rotation_angles[2] = fmod(this.camera.rotation_angles[2], 360);
+        }
+        else {
+            this.camera.rotation_angles[1] += e.movementX * manipulation_scale;
+            this.camera.rotation_angles[0] += e.movementY * manipulation_scale;
+            this.camera.rotation_angles[0] = fmod(this.camera.rotation_angles[0], 360);
+            this.camera.rotation_angles[1] = fmod(this.camera.rotation_angles[1], 360);
+        }
+
         this.game.requestRenderingProcess(window);
     }
 
     private onWheel(e: WheelEvent): void {
+        this.camera.position[2] -= e.deltaY * 0.005;
+        this.camera.position[2] = Math.min(Math.max(this.camera.position[2], -500), -5);
+
         e.preventDefault();
         e.stopPropagation();
+
+        this.game.requestRenderingProcess(window);
     }
 
     private onResize(): void {
@@ -91,28 +114,30 @@ export default class App extends React.Component {
     }
 
     private onTouchStart(e: TouchEvent): void {
-        if (this.pointers.length > 0)
+        if (this.manipulation_mode != ManipulationMode.NONE)
             return;
 
-        if (e.touches.length == 1) {
-            this.pointers = [GLM.vec2.fromValues(e.touches[0].clientX, e.touches[0].clientY)];
+        if (e.touches.length == 1)
+            this.manipulation_mode = ManipulationMode.ROTATE;
+        else if (e.touches.length == 2)
+            this.manipulation_mode = ManipulationMode.ZOOM;
+        else
+            return;
 
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        else if (e.touches.length == 2) {
-            this.pointers = [GLM.vec2.fromValues(e.touches[0].clientX, e.touches[0].clientY), GLM.vec2.fromValues(e.touches[1].clientX, e.touches[1].clientY)];
-
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        e.preventDefault();
+        e.stopPropagation();
 
         this.game.requestRenderingProcess(window);
     }
 
     private onTouchMove(e: TouchEvent): void {
-        if (e.touches.length != this.pointers.length) {
-            this.pointers = [];
+        if (this.manipulation_mode == ManipulationMode.ROTATE && e.touches.length == 1) {
+
+        }
+        else if (this.manipulation_mode == ManipulationMode.ZOOM && e.touches.length == 2) {
+        }
+        else {
+            this.manipulation_mode = ManipulationMode.NONE;
             return;
         }
 
@@ -123,10 +148,11 @@ export default class App extends React.Component {
     }
 
     private onTouchStop(e: Event): void {
-        if (this.pointers.length < 1)
+        if (this.manipulation_mode == ManipulationMode.NONE)
             return;
 
-        this.pointers = [];
+        this.manipulation_mode = ManipulationMode.NONE;
+
         e.preventDefault();
         e.stopPropagation();
     }
