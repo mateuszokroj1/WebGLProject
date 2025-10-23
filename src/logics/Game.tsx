@@ -103,7 +103,7 @@ await this.mutex.lock();
     }
 
     render() {
-        return (<canvas className="game" ref={this.frame_element} />);
+        return (<canvas className="game" ref={this.frame_element} onContextMenu={(e)=>{e.preventDefault()}} />);
     }
 
     private renderFrame() {

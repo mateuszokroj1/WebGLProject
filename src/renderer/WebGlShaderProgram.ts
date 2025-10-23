@@ -89,6 +89,7 @@ export default class WebGlShaderProgram implements IInitializable<HTMLCanvasElem
         this.vertex_buffer = context.createBuffer();
         context.bindBuffer(context.ARRAY_BUFFER, this.vertex_buffer);
         context.vertexAttribPointer(0, 3, context.FLOAT, false, 2 * 3 * 4, 0);
+        context.vertexAttribPointer(1, 3, context.FLOAT, true, 3 * 4, 3 * 4);
 
         this.context = context;
     }

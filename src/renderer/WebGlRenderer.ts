@@ -10,7 +10,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
     private program: WebGlShaderProgram = new WebGlShaderProgram;
     private camera: Camera | null = null;
     private ambient_light_color: GLM.vec3 = GLM.vec3.fromValues(1.0, 1.0, 1.0);
-    private diffuse_light_position: GLM.vec3 = GLM.vec3.fromValues(0, 0, 0);
+    private diffuse_light_position: GLM.vec3 = GLM.vec3.fromValues(-100, 100, -100);
     private diffuse_light_color: GLM.vec3 = GLM.vec3.fromValues(1.0, 1.0, 1.0);
     private specular_light_position: GLM.vec3 = GLM.vec3.fromValues(0, 0, 0);
     private material: Material = Material.solidColorRed();
@@ -24,7 +24,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
     private reset(): void {
         this.camera = null;
         this.ambient_light_color = GLM.vec3.fromValues(1.0, 1.0, 1.0);
-        this.diffuse_light_position = GLM.vec3.fromValues(0, 0, 0);
+        this.diffuse_light_position = GLM.vec3.fromValues(-100, 100, -100);
         this.diffuse_light_color = GLM.vec3.fromValues(1.0, 1.0, 1.0);
         this.specular_light_position = GLM.vec3.fromValues(0, 0, 0);
         this.material = Material.solidColorRed();
@@ -125,6 +125,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
 
         context.bufferData(context.ARRAY_BUFFER, this.vertices, context.STATIC_DRAW);
         context.enableVertexAttribArray(0);
+        context.enableVertexAttribArray(1);
 
         context.uniformMatrix4fv(this.program.uniform_locations.modelTransformationMatrix, false, this.model_transformation);
         context.uniform3fv(this.program.uniform_locations.material_baseColor, this.material.base_color);
@@ -135,6 +136,7 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
 
         context.drawArrays(context.TRIANGLES, 0, this.vertices.length / 6);
         context.disableVertexAttribArray(0);
+        context.disableVertexAttribArray(1);
 
         this.reset();
     }

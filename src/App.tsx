@@ -16,7 +16,8 @@ enum ProjectionMode {
 enum ManipulationMode {
     NONE = 0,
     ROTATE,
-    ZOOM
+    ZOOM,
+    PAN
 }
 
 export default class App extends React.Component {
@@ -37,9 +38,9 @@ export default class App extends React.Component {
         this.game.camera = this.camera;
         this.game.renderer = this.renderer;
         this.game.lights_configuration = {
-            ambient_light_color: GLM.vec3.fromValues(0,0,1),
-            diffuse_light_position: GLM.vec3.fromValues(5, 5, -10),
-            diffuse_light_color: GLM.vec3.fromValues(0.7, 0.7, 0.6),
+            ambient_light_color: GLM.vec3.fromValues(0, 0, 1),
+            diffuse_light_position: GLM.vec3.fromValues(-1, 1, 1),
+            diffuse_light_color: GLM.vec3.fromValues(1,1,1),
             specular_light_position: GLM.vec3.fromValues(-5, 5, -10)
         };
 
@@ -50,16 +51,20 @@ export default class App extends React.Component {
     private manipulation_mode: ManipulationMode = ManipulationMode.NONE;
 
     private onMouseDown(e: MouseEvent): void {
-        if (this.manipulation_mode == ManipulationMode.ROTATE || e.button != 0)
+        if (this.manipulation_mode != ManipulationMode.NONE || (e.buttons & 0b11010) > 0)
             return;
 
         e.preventDefault();
         e.stopPropagation();
-        this.manipulation_mode = ManipulationMode.ROTATE;
+
+        if ((e.buttons & 0b01) > 0)
+            this.manipulation_mode = ManipulationMode.ROTATE;
+        else if((e.buttons & 0b100) > 0)
+            this.manipulation_mode = ManipulationMode.PAN;
     }
 
     private onMouseUp(e: MouseEvent): void {
-        if (this.manipulation_mode != ManipulationMode.ROTATE)
+        if (this.manipulation_mode == ManipulationMode.NONE)
             return;
 
         e.preventDefault();
@@ -69,10 +74,10 @@ export default class App extends React.Component {
     }
 
     private onMouseMove(e: MouseEvent): void {
-        if (this.manipulation_mode != ManipulationMode.ROTATE)
+        if (this.manipulation_mode != ManipulationMode.ROTATE && this.manipulation_mode != ManipulationMode.PAN)
             return;
 
-        if (e.buttons != 1) {
+        if ((e.buttons & 0b11010) > 0) {
             this.manipulation_mode = ManipulationMode.NONE;
             return;
         }
@@ -80,17 +85,23 @@ export default class App extends React.Component {
         e.preventDefault();
         e.stopPropagation();
 
-        const manipulation_scale = e.shiftKey ? 0.05 : 0.5;
+        if (this.manipulation_mode == ManipulationMode.ROTATE) {
+            const manipulation_scale = e.shiftKey ? 0.05 : 0.5;
 
-        if (e.ctrlKey) {
-            this.camera.rotation_angles[2] += e.movementY * manipulation_scale;
-            this.camera.rotation_angles[2] = fmod(this.camera.rotation_angles[2], 360);
+            if (e.ctrlKey) {
+                this.camera.rotation_angles[2] += e.movementY * manipulation_scale;
+                this.camera.rotation_angles[2] = fmod(this.camera.rotation_angles[2], 360);
+            }
+            else {
+                this.camera.rotation_angles[1] += e.movementX * manipulation_scale;
+                this.camera.rotation_angles[0] += e.movementY * manipulation_scale;
+                this.camera.rotation_angles[0] = fmod(this.camera.rotation_angles[0], 360);
+                this.camera.rotation_angles[1] = fmod(this.camera.rotation_angles[1], 360);
+            }
         }
-        else {
-            this.camera.rotation_angles[1] += e.movementX * manipulation_scale;
-            this.camera.rotation_angles[0] += e.movementY * manipulation_scale;
-            this.camera.rotation_angles[0] = fmod(this.camera.rotation_angles[0], 360);
-            this.camera.rotation_angles[1] = fmod(this.camera.rotation_angles[1], 360);
+        else if (this.manipulation_mode == ManipulationMode.PAN) {
+            this.camera.position[0] -= e.movementX * 0.005;
+            this.camera.position[1] += e.movementY * 0.005;
         }
 
         this.game.requestRenderingProcess(window);
