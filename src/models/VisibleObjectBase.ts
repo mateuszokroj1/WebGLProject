@@ -12,6 +12,5 @@ export default abstract class VisibleObjectBase extends SceneGraphComponentBase 
     readonly name: string;
 
     abstract getModelTransformation(): mat4;
-    abstract getBoundingBox(): Box;
     abstract acceptRenderer(visitor: IRenderer): void;
 }

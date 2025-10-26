@@ -21,7 +21,7 @@ export default class STLObject extends VisibleObjectBase {
     private data: Float32Array | null = null;
     private file_path: string = "";
     public parent_group: ISceneGraphComponent | null = null;
-    private _bounding_box: Box = new Box;
+    private init_transformation: GLM.mat4 = GLM.mat4.identity(GLM.mat4.create());
     public material: Material | null = null;
     public comment: string = "";
 
@@ -39,6 +39,7 @@ export default class STLObject extends VisibleObjectBase {
             throw new Error(`Cannot read STL file from path ${this.file_path}. Buffer is undefined.`);
 
         const is_binary = isBinaryFile(buffer);
+        let bounding_box = new Box;
 
         let data: number[] = [];
         if (!is_binary) {
@@ -86,7 +87,7 @@ export default class STLObject extends VisibleObjectBase {
                     data.push(normal_y);
                     data.push(normal_z);
 
-                    this._bounding_box.addPoint(GLM.vec3.fromValues(vertex_x, vertex_y, vertex_z));
+                    bounding_box.addPoint(GLM.vec3.fromValues(vertex_x, vertex_y, vertex_z));
                     single_vertex = vertex_reg.exec(single_triangle[0]);
                 }
 
@@ -118,17 +119,37 @@ export default class STLObject extends VisibleObjectBase {
                 data.push(...v3);
                 data.push(...normal);
 
-                this._bounding_box.addPoint(GLM.vec3.fromValues(...v1));
-                this._bounding_box.addPoint(GLM.vec3.fromValues(...v2));
-                this._bounding_box.addPoint(GLM.vec3.fromValues(...v3));
+                bounding_box.addPoint(GLM.vec3.fromValues(...v1));
+                bounding_box.addPoint(GLM.vec3.fromValues(...v2));
+                bounding_box.addPoint(GLM.vec3.fromValues(...v3));
             }
         }
 
         this.data = new Float32Array(data);
+
+        const transformed_vertices: GLM.vec3[] = [GLM.vec3.clone(bounding_box.min), GLM.vec3.clone(bounding_box.max)];
+        let scaler: number = NaN;
+
+        for (let i = 0; i < 2; ++i) {
+            GLM.vec3.subtract(transformed_vertices[i], transformed_vertices[i], bounding_box.center);
+
+            for (let j = 0; j < 3; ++j) {
+                let positive_value = Math.abs(transformed_vertices[i][j]);
+                if (isNaN(scaler) || scaler < positive_value)
+                    scaler = positive_value;
+            }
+        }
+
+        scaler = 1 / scaler;
+
+        GLM.mat4.translate(this.init_transformation, this.init_transformation, GLM.vec3.fromValues(-bounding_box.center[0] * scaler, -bounding_box.center[1] * scaler, -bounding_box.center[2] * scaler));
+        GLM.mat4.scale(this.init_transformation, this.init_transformation, GLM.vec3.fromValues(scaler, scaler, scaler));
     }
 
     getModelTransformation(): GLM.mat4 {
         let object_trafo = this.objectTransformation.getTransformationMatrix();
+
+        GLM.mat4.multiply(object_trafo, object_trafo, this.init_transformation);
 
         if (this.parent_group != null)
             GLM.mat4.multiply(object_trafo, object_trafo, this.parent_group.getModelTransformation());
@@ -136,24 +157,10 @@ export default class STLObject extends VisibleObjectBase {
         return object_trafo;
     }
 
-    getBoundingBox(): Box {
-        return this._bounding_box;
-    }
-
     acceptRenderer(renderer: IRenderer): void {
         if (this.material != null)
             renderer.useMaterial(this.material);
-/*
-        const final_model_transformation = GLM.mat4.identity(GLM.mat4.create());
-        const gravity_center = this._bounding_box.center;
-        const radius1: number = GLM.vec3.distance(this._bounding_box.min, gravity_center);
-        const radius2: number = GLM.vec3.distance(this._bounding_box.max, gravity_center);
-        const scaler = 1 / Math.max(radius1, radius2);
 
-        GLM.mat4.translate(final_model_transformation, final_model_transformation, GLM.vec3.fromValues(-gravity_center[0], -gravity_center[1], -gravity_center[2]));
-        GLM.mat4.scale(final_model_transformation, final_model_transformation, GLM.vec3.fromValues(scaler, scaler, scaler));
-
-        GLM.mat4.multiply(final_model_transformation, final_model_transformation, this.getModelTransformation());*/
         renderer.useModelTransformation(this.getModelTransformation());
 
         if (this.data != null)

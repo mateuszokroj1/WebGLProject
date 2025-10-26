@@ -6,7 +6,7 @@ import Camera from './models/Camera';
 import { OrthoProjection, PerspectiveProjection } from './models/CameraProjection';
 import WebGlRenderer from './renderer/WebGlRenderer';
 import MyScene from './MyScene';
-import { fmod } from './tools/Functions';
+import { angleReduction, fmod } from './tools/Functions';
 
 enum ProjectionMode {
     ORTHOGRAPHIC,
@@ -41,13 +41,45 @@ export default class App extends React.Component {
         this.game.camera = this.camera;
         this.game.renderer = this.renderer;
         this.game.lights_configuration = {
-            ambient_light_color: GLM.vec3.fromValues(0, 0, 1),
-            diffuse_light_position: GLM.vec3.fromValues(-20, 20, 20),
+            ambient_light_color: GLM.vec3.fromValues(0.5, 0.5, 1),
+            diffuse_light_position: GLM.vec3.fromValues(-1, 1, 5),
             diffuse_light_color: GLM.vec3.fromValues(1, 0.8, 0),
-            specular_light_position: GLM.vec3.fromValues(-10, 10, 20)
+            specular_light_position: GLM.vec3.fromValues(-1, 10, 5)
         };
 
         this.game.scene_graph = new MyScene;
+    }
+
+    private changeProjectionMode(e: React.UIEvent): void {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (this.projection_mode === ProjectionMode.ORTHOGRAPHIC) {
+            this.camera.projection = this.perspective_projection;
+            this.projection_mode = ProjectionMode.PERSPECTIVE;
+        } else {
+            this.camera.projection = this.ortho_projection;
+            this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
+        }
+
+        this.game.requestRenderingProcess(window);
+    }
+
+    private resetCameraImpl(): void {
+        this.camera.position = GLM.vec3.fromValues(0, 0, -5);
+        this.camera.rotation_angles = GLM.vec3.fromValues(40, 45, 0);
+        this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement)?.clientWidth / (this.main_element.current as HTMLDivElement)?.clientHeight || 1;
+    }
+
+    private resetCameraSettings(e: React.UIEvent): void {
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.resetCameraImpl();
+        this.camera.projection = this.perspective_projection;
+        this.projection_mode = ProjectionMode.PERSPECTIVE;
+
+        this.game.requestRenderingProcess(window);
     }
 
     // Events
@@ -88,23 +120,24 @@ export default class App extends React.Component {
         e.preventDefault();
         e.stopPropagation();
 
+        const manipulation_scale = e.shiftKey ? 0.05 : 0.5;
         if (this.manipulation_mode == ManipulationMode.ROTATE) {
-            const manipulation_scale = e.shiftKey ? 0.05 : 0.5;
+
 
             if (e.ctrlKey) {
-                this.camera.rotation_angles[2] += e.movementY * manipulation_scale;
-                this.camera.rotation_angles[2] = fmod(this.camera.rotation_angles[2], 360);
+                this.camera.rotation_angles[2] -= e.movementX * manipulation_scale;
+                this.camera.rotation_angles[2] = angleReduction(this.camera.rotation_angles[2]);
             }
             else {
                 this.camera.rotation_angles[1] += e.movementX * manipulation_scale;
                 this.camera.rotation_angles[0] += e.movementY * manipulation_scale;
-                this.camera.rotation_angles[0] = fmod(this.camera.rotation_angles[0], 360);
-                this.camera.rotation_angles[1] = fmod(this.camera.rotation_angles[1], 360);
+                this.camera.rotation_angles[0] = angleReduction(this.camera.rotation_angles[0]);
+                this.camera.rotation_angles[1] = angleReduction(this.camera.rotation_angles[1]);
             }
         }
         else if (this.manipulation_mode == ManipulationMode.PAN) {
-            this.camera.position[0] += e.movementX * 0.005;
-            this.camera.position[1] -= e.movementY * 0.005;
+            this.camera.position[0] += e.movementX * manipulation_scale * 0.1;
+            this.camera.position[1] -= e.movementY * manipulation_scale * 0.1;
         }
 
         this.game.requestRenderingProcess(window);
@@ -112,7 +145,7 @@ export default class App extends React.Component {
 
     private onWheel(e: WheelEvent): void {
         this.camera.position[2] -= e.deltaY * 0.005;
-        this.camera.position[2] = Math.min(Math.max(this.camera.position[2], -500), -5);
+        this.camera.position[2] = Math.min(Math.max(this.camera.position[2], -500), -2);
 
         e.preventDefault();
         e.stopPropagation();
@@ -185,38 +218,6 @@ export default class App extends React.Component {
 
             this.onResize();
         }
-    }
-
-    private changeProjectionMode(e: React.UIEvent): void {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (this.projection_mode === ProjectionMode.ORTHOGRAPHIC) {
-            this.camera.projection = this.perspective_projection;
-            this.projection_mode = ProjectionMode.PERSPECTIVE;
-        } else {
-            this.camera.projection = this.ortho_projection;
-            this.projection_mode = ProjectionMode.ORTHOGRAPHIC;
-        }
-
-        this.game.requestRenderingProcess(window);
-    }
-
-    private resetCameraImpl(): void {
-        this.camera.position = GLM.vec3.fromValues(0, 0, -10);
-        this.camera.rotation_angles = GLM.vec3.fromValues(0, 0, 0);
-        this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement)?.clientWidth / (this.main_element.current as HTMLDivElement)?.clientHeight || 1;
-    }
-
-    private resetCameraSettings(e: React.UIEvent): void {
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.resetCameraImpl();
-        this.camera.projection = this.perspective_projection;
-        this.projection_mode = ProjectionMode.PERSPECTIVE;
-
-        this.game.requestRenderingProcess(window);
     }
 
     // React lifecycle

@@ -103,9 +103,9 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
 
         let view_transformation = GLM.mat4.identity(GLM.mat4.create());
         GLM.mat4.translate(view_transformation, view_transformation, this.camera.position);
-        GLM.mat4.rotateZ(view_transformation, view_transformation, this.camera.rotation_angles[2] * Math.PI / 180);
-        GLM.mat4.rotateY(view_transformation, view_transformation, this.camera.rotation_angles[1] * Math.PI / 180);
         GLM.mat4.rotateX(view_transformation, view_transformation, this.camera.rotation_angles[0] * Math.PI / 180);
+        GLM.mat4.rotateY(view_transformation, view_transformation, this.camera.rotation_angles[1] * Math.PI / 180);
+        GLM.mat4.rotateZ(view_transformation, view_transformation, this.camera.rotation_angles[2] * Math.PI / 180);
 
         this.program.configureWorldParameters(
             view_transformation,
@@ -124,8 +124,8 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
         if (!context) throw new Error('WebGL context not available.');
 
         context.bufferData(context.ARRAY_BUFFER, this.vertices, context.STATIC_DRAW);
-        context.enableVertexAttribArray(0);
-        context.enableVertexAttribArray(1);
+        context.enableVertexAttribArray(this.program.attribute_locations.position);
+        context.enableVertexAttribArray(this.program.attribute_locations.normal);
 
         context.uniformMatrix4fv(this.program.uniform_locations.modelTransformationMatrix, false, this.model_transformation);
         context.uniform3fv(this.program.uniform_locations.material_baseColor, this.material.base_color);
@@ -135,8 +135,8 @@ export default class WebGlRenderer implements IRenderer, IInitializable {
         context.uniform1f(this.program.uniform_locations.material_opacity, this.material.opacity);
 
         context.drawArrays(context.TRIANGLES, 0, this.vertices.length / 6);
-        context.disableVertexAttribArray(0);
-        context.disableVertexAttribArray(1);
+        context.disableVertexAttribArray(this.program.attribute_locations.position);
+        context.disableVertexAttribArray(this.program.attribute_locations.normal);
 
         this.reset();
     }
