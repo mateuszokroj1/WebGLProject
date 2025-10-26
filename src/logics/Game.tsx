@@ -21,7 +21,8 @@ export default class Game extends React.Component implements IGame {
 
     private _isStarted: boolean = false;
     private _is_starting: boolean = false;
-    public frame_size: GLM.vec2 = GLM.vec2.fromValues(800, 600);
+    private readonly START_FRAME_SIZE: GLM.vec2 = GLM.vec2.fromValues(800, 600);
+    public frame_size: GLM.vec2 = this.START_FRAME_SIZE;
     private frame_element: React.RefObject<HTMLCanvasElement | null>;
     private _renderer: IRenderer | null = null;
     private _camera: Camera = new Camera();
@@ -56,7 +57,7 @@ export default class Game extends React.Component implements IGame {
     }
 
     async start(): Promise<void> {
-await this.mutex.lock();
+        await this.mutex.lock();
 
         if (this.renderer == null || this.frame_element.current == null || this.camera == null || this.scene_graph == null) {
             throw new Error("Rendering not configured.");
@@ -103,7 +104,7 @@ await this.mutex.lock();
     }
 
     render() {
-        return (<canvas className="game" ref={this.frame_element} onContextMenu={(e)=>{e.preventDefault()}} />);
+        return (<canvas className="game" ref={this.frame_element} onContextMenu={(e) => { e.preventDefault() }} />);
     }
 
     private renderFrame() {
@@ -116,19 +117,19 @@ await this.mutex.lock();
         this.frame_element.current.width = this.frame_size[0];
         this.frame_element.current.height = this.frame_size[1];
 
-        //   try {
-        this.renderer.useCamera(this.camera);
-        this.renderer.configureWorldParameters(GLM.vec3.fromValues(0.15, 0.15, 0.15));
-        this.renderer.setAmbientLightColor(this.lights_configuration.ambient_light_color);
-        this.renderer.setDiffuseLight(this.lights_configuration.diffuse_light_position, this.lights_configuration.diffuse_light_color);
-        this.renderer.setSpecularLight(this.lights_configuration.specular_light_position);
-
-        this.renderer.visitSceneComponent(this.scene_graph);
-        /*     } catch (e) {
-                 console.error(e);
-                 this.stop();
-                 return;
-             }*/
+        try {
+            this.renderer.useCamera(this.camera);
+            this.renderer.setAmbientLightColor(this.lights_configuration.ambient_light_color);
+            this.renderer.setDiffuseLight(this.lights_configuration.diffuse_light_position, this.lights_configuration.diffuse_light_color);
+            this.renderer.setSpecularLight(this.lights_configuration.specular_light_position);
+            
+            this.renderer.configureWorldParameters(GLM.vec3.fromValues(0.15, 0.15, 0.15));
+            this.renderer.visitSceneComponent(this.scene_graph);
+        } catch (e) {
+            console.error(e);
+            this.stop();
+            return;
+        }
     }
 
     public requestRenderingProcess(window: Window): void {

@@ -21,6 +21,9 @@ enum ManipulationMode {
 }
 
 export default class App extends React.Component {
+    private readonly LEFT_MOUSE_BUTTON = 0b1;
+    private readonly RIGHT_MOUSE_BUTTON = 0b10;
+
     private game = new Game();
     private main_element: React.RefObject<HTMLDivElement | null> = React.createRef();
     private renderer = new WebGlRenderer();
@@ -39,9 +42,9 @@ export default class App extends React.Component {
         this.game.renderer = this.renderer;
         this.game.lights_configuration = {
             ambient_light_color: GLM.vec3.fromValues(0, 0, 1),
-            diffuse_light_position: GLM.vec3.fromValues(-1, 1, 1),
-            diffuse_light_color: GLM.vec3.fromValues(1,1,1),
-            specular_light_position: GLM.vec3.fromValues(-5, 5, -10)
+            diffuse_light_position: GLM.vec3.fromValues(-20, 20, 20),
+            diffuse_light_color: GLM.vec3.fromValues(1, 0.8, 0),
+            specular_light_position: GLM.vec3.fromValues(-10, 10, 20)
         };
 
         this.game.scene_graph = new MyScene;
@@ -51,15 +54,15 @@ export default class App extends React.Component {
     private manipulation_mode: ManipulationMode = ManipulationMode.NONE;
 
     private onMouseDown(e: MouseEvent): void {
-        if (this.manipulation_mode != ManipulationMode.NONE || (e.buttons & 0b11010) > 0)
+        if (this.manipulation_mode != ManipulationMode.NONE || (e.buttons & ~(this.LEFT_MOUSE_BUTTON | this.RIGHT_MOUSE_BUTTON)) > 0)
             return;
 
         e.preventDefault();
         e.stopPropagation();
 
-        if ((e.buttons & 0b01) > 0)
+        if ((e.buttons & this.LEFT_MOUSE_BUTTON) > 0)
             this.manipulation_mode = ManipulationMode.ROTATE;
-        else if((e.buttons & 0b100) > 0)
+        else if ((e.buttons & this.RIGHT_MOUSE_BUTTON) > 0)
             this.manipulation_mode = ManipulationMode.PAN;
     }
 
@@ -77,7 +80,7 @@ export default class App extends React.Component {
         if (this.manipulation_mode != ManipulationMode.ROTATE && this.manipulation_mode != ManipulationMode.PAN)
             return;
 
-        if ((e.buttons & 0b11010) > 0) {
+        if ((e.buttons & ~(this.LEFT_MOUSE_BUTTON | this.RIGHT_MOUSE_BUTTON)) > 0) {
             this.manipulation_mode = ManipulationMode.NONE;
             return;
         }
@@ -100,8 +103,8 @@ export default class App extends React.Component {
             }
         }
         else if (this.manipulation_mode == ManipulationMode.PAN) {
-            this.camera.position[0] -= e.movementX * 0.005;
-            this.camera.position[1] += e.movementY * 0.005;
+            this.camera.position[0] += e.movementX * 0.005;
+            this.camera.position[1] -= e.movementY * 0.005;
         }
 
         this.game.requestRenderingProcess(window);
