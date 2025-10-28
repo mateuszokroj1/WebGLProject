@@ -7,6 +7,15 @@ import Material from "./Material";
 import { isBinaryFile } from "arraybuffer-isbinary";
 import Box from "../models/Box";
 
+function read3fv(source: DataView, offset: number): Float32Array {
+    let arr = new Float32Array(3);
+
+    for (let i = 0; i < 3; ++i)
+        arr[i] = source.getFloat32(offset + 4 * i, true);
+
+    return arr;
+}
+
 export default class STLObject extends VisibleObjectBase {
     constructor(name: string, file_pathOrData: string | Float32Array) {
         super(name);
@@ -34,7 +43,7 @@ export default class STLObject extends VisibleObjectBase {
         if (!request.ok)
             throw new Error(`Cannot load STL file from path ${this.file_path}. Status: ${request.status} ${request.statusText}.`);
 
-        const buffer = (await request.body?.getReader().read())?.value;
+        let buffer = await request.arrayBuffer();
         if (buffer == undefined)
             throw new Error(`Cannot read STL file from path ${this.file_path}. Buffer is undefined.`);
 
@@ -99,18 +108,23 @@ export default class STLObject extends VisibleObjectBase {
             if (header.trim().length > 0)
                 this.comment = header.trim();
 
-            const count = new Uint32Array(buffer.slice(80, 84))[0]
+            let buffer_position = 80;
+            let reader = new DataView(buffer);
+            const count = reader.getUint32(buffer_position, true);
+            buffer_position += 4;
 
             for (let i = 0; i < count; i++) {
-                const triangle_bytesize = 12 * 4; // 12x float32
-                const startPosition = 84 + i * (triangle_bytesize + 2); // 2 bytes for attribute byte count
+                const normal = read3fv(reader, buffer_position);
+                buffer_position += 4 * 3;
 
-                const floats = new Float32Array(buffer.slice(startPosition, startPosition + triangle_bytesize))
+                const v1 = read3fv(reader, buffer_position);
+                buffer_position += 4 * 3;
 
-                const normal = [floats[0], floats[1], floats[2]];
-                const v1 = [floats[3], floats[4], floats[5]];
-                const v2 = [floats[6], floats[7], floats[8]];
-                const v3 = [floats[9], floats[10], floats[11]];
+                const v2 = read3fv(reader, buffer_position);
+                buffer_position += 4 * 3;
+
+                const v3 = read3fv(reader, buffer_position);
+                buffer_position += (4 * 3) + 2;
 
                 data.push(...v1);
                 data.push(...normal);

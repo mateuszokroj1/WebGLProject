@@ -43,7 +43,7 @@ export default class App extends React.Component {
         this.game.lights_configuration = {
             ambient_light_color: GLM.vec3.fromValues(0.5, 0.5, 1),
             diffuse_light_position: GLM.vec3.fromValues(-1, 1, 5),
-            diffuse_light_color: GLM.vec3.fromValues(1, 0.8, 0),
+            diffuse_light_color: GLM.vec3.fromValues(1, 1, 0),
             specular_light_position: GLM.vec3.fromValues(-1, 10, 5)
         };
 
@@ -68,7 +68,6 @@ export default class App extends React.Component {
     private resetCameraImpl(): void {
         this.camera.position = GLM.vec3.fromValues(0, 0, -5);
         this.camera.rotation_angles = GLM.vec3.fromValues(40, 45, 0);
-        this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement)?.clientWidth / (this.main_element.current as HTMLDivElement)?.clientHeight || 1;
     }
 
     private resetCameraSettings(e: React.UIEvent): void {
@@ -136,8 +135,8 @@ export default class App extends React.Component {
             }
         }
         else if (this.manipulation_mode == ManipulationMode.PAN) {
-            this.camera.position[0] += e.movementX * manipulation_scale * 0.1;
-            this.camera.position[1] -= e.movementY * manipulation_scale * 0.1;
+            this.camera.position[0] += e.movementX * manipulation_scale * 0.05;
+            this.camera.position[1] -= e.movementY * manipulation_scale * 0.05;
         }
 
         this.game.requestRenderingProcess(window);
@@ -154,9 +153,14 @@ export default class App extends React.Component {
     }
 
     private onResize(): void {
-        this.game.frame_size = GLM.vec2.fromValues((this.main_element.current as HTMLDivElement).clientWidth, (this.main_element.current as HTMLDivElement).clientHeight);
+        const width = (this.main_element.current as HTMLDivElement).clientWidth;
+        const height = (this.main_element.current as HTMLDivElement).clientHeight;
+        const aspect_ratio = width / height;
 
-        this.perspective_projection.aspect = (this.main_element.current as HTMLDivElement).clientWidth / (this.main_element.current as HTMLDivElement).clientHeight;
+        this.game.frame_size = GLM.vec2.fromValues(width, height);
+        this.perspective_projection.aspect = aspect_ratio;
+        this.ortho_projection.aspect = aspect_ratio;
+
         this.game.requestRenderingProcess(window);
     }
 
