@@ -182,7 +182,7 @@ export default class App extends React.Component {
     }
 
     private onTouchMove(e: TouchEvent): void {
-        if (this.manipulation_mode == ManipulationMode.ROTATE && e.touches.length == 1) {
+        /*if (this.manipulation_mode == ManipulationMode.ROTATE && e.touches.length == 1) {
 
         }
         else if (this.manipulation_mode == ManipulationMode.ZOOM && e.touches.length == 2) {
@@ -195,7 +195,7 @@ export default class App extends React.Component {
         this.game.requestRenderingProcess(window);
 
         e.preventDefault();
-        e.stopPropagation();
+        e.stopPropagation();*/
     }
 
     private onTouchStop(e: Event): void {
